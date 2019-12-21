@@ -146,7 +146,7 @@
 		.store_int(wc, 8)
 		.store_uint(client_addr, 256)
 		;; ToDo: provide grams amount in fift script.
-		.store_grams(0.1) ;; Hardcoding some amount for now.
+		.store_grams(0.5) ;; Hardcoding some amount for now.
 		.store_uint(1, 107) ;; 106 zeroes + 
 		;; 1 as an indicator that there is a cell with the data.
 		.store_ref(resp_data)
