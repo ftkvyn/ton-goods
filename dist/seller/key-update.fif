@@ -1,0 +1,48 @@
+#!/usr/bin/env fift -s
+"TonUtil.fif" include
+
+{ ."usage: " @' $0 type ." <addr-file> <old-key-name> <new-key-name> <seqno> [<savefile>]" cr
+  ."Updates the public key stored in the contract." cr
+  ."Contract address is taken from <addr-file>.addr" cr
+  ."Old owner's private key is loaded from the file <old-key-name>.pk." cr
+  ."Old owner's private key is loaded from or saved to the file <new-key-name>.pk." cr
+  ."Saves it into <savefile>.boc ('update-key-query.boc' by default)" cr
+  1 halt
+} : usage
+$# dup 4 < swap 5 > or ' usage if
+$1 =: contract_addr_file
+$2 =: old_key_name
+$3 =: new_key_name
+$4 parse-int =: seqno
+
+$5 "update-key-query" replace-if-null =: savefile
+
+15 constant mode // Mode, 15 = updating the key
+
+contract_addr_file +".addr" load-address
+2dup 2constant contract_addr
+."Contract address = " 2dup .addr cr 6 .Addr cr
+
+old_key_name +".pk" load-keypair 
+constant old_key_priv
+constant old_key_pub
+
+new_key_name +".pk" load-generate-keypair 
+constant new_key_priv
+constant new_key_pub
+
+<b
+   mode 4 u,
+   seqno 32 u,
+   new_key_pub B,
+b>
+constant message
+
+message hash old_key_priv ed25519_sign_uint constant signature
+
+<b b{1000100} s, contract_addr addr, 0 Gram, b{00} s,
+   signature B, message ref, b>
+dup ."resulting external message: " <s csr. cr
+2 boc+>B dup Bx. cr
+savefile +".boc" tuck B>file
+."(Saved to file " type .")" cr

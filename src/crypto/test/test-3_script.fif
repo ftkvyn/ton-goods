@@ -1,0 +1,142 @@
+//	=================================
+//	=====	TEST FOR seller.fc	=====
+//	=================================
+//	Given:
+//		=> Seller with initialized list of goods, created price request
+//	Testing:
+//		=> Giving price estimation for the request
+//		=> Being payed for a created price estimation
+
+"TonUtil.fif" include
+
+
+"test_key" constant key_name
+60 60 * 24 * 7 * constant timeout   // request expires in 7 days
+7 constant seqno
+107458758920502048355401576498620765193386872457718870803507922532699518331328 constant buyer_addr_int 
+0 buyer_addr_int 2constant buyer_addr 
+
+key_name +".pk" load-generate-keypair 
+constant key_priv
+constant key_pub
+
+dictnew constant goods_dict
+// Known goods
+<b 1 1 u, b> <s 55 goods_dict 32 udict!
+drop
+constant goods_dict
+<b 1 1 u, b> <s 45 goods_dict 32 udict!
+drop
+constant goods_dict
+<b 1 1 u, b> <s 72 goods_dict 32 udict!
+drop
+constant goods_dict
+<b 1 1 u, b> <s 9 goods_dict 32 udict!
+drop
+constant goods_dict
+dictnew constant clients_price_requests
+dictnew constant clients_price_responses
+
+<b 
+    seqno 32 u, 
+    key_pub B,
+    1 1 u, // is_open
+    0 Gram, // request is free
+    goods_dict dict,
+    clients_price_requests dict,
+    clients_price_responses dict,
+	<b "test name" $, b> ref,
+ b> constant storage
+
+<b b{1000100} s, buyer_addr addr, 0 Gram, b{00} s, b> constant meta
+dictnew constant order_dict
+<b 12 32 u, b> <s 9 order_dict 32 udict!
+drop
+constant order_dict
+<b 2 32 u, b> <s 45 order_dict 32 udict!
+drop
+constant order_dict
+<b 52 32 u, b> <s 7 order_dict 32 udict!
+drop
+constant order_dict
+<b
+   now timeout + 32 u, 
+   order_dict dict,
+   b>
+ constant order
+
+9999 constant query_id
+<b
+   1 4 u, // Mode, 1 = create an order
+   query_id 32 u, 
+   order ref, b>
+ <s constant message
+."Message: " cr message csr. cr
+."Storage: " cr storage <s csr. cr
+0 meta message 0 code <s storage c7 runvmctx // Creating an order
+
+constant updated_storage
+constant exit_code
+."Exit code " exit_code . cr
+."Updated storage: " cr updated_storage <s csr. cr
+
+dictnew constant est_goods_dict
+<b 10 32 u, b> <s 9 est_goods_dict 32 udict!
+drop
+constant est_goods_dict
+<b 2 32 u, b> <s 45 est_goods_dict 32 udict!
+drop
+constant est_goods_dict
+
+<b
+   1 4 u, // Mode, 1 = responding with the price
+   seqno 32 u,
+   buyer_addr_int 256 u, // Client address
+   query_id 32 u, 
+   112 Gram,
+   now timeout + 32 u, 
+   est_goods_dict dict, b>
+constant estimate_message
+
+estimate_message hash key_priv ed25519_sign_uint constant signature
+
+<b
+   signature B, estimate_message ref, b>
+ <s constant signed_message
+
+signed_message -1 code <s updated_storage c7 runvmctx // Creating price estimate
+
+constant updated_storage_2
+constant exit_code
+."Exit code " exit_code . cr
+."Updated storage: " cr updated_storage_2 <s csr. cr
+
+// =============================================================================== //
+// ================================== NEXT TEST ================================== //
+// =============================================================================== //
+
+<b
+   2 4 u, // Mode, 2 = paying for an an order
+   query_id 32 u, b>
+ <s constant message
+."Message: " cr message csr. cr
+
+111 meta message 0 code <s updated_storage_2 c7 runvmctx 
+
+constant updated_storage_3
+constant exit_code
+."Exit code " exit_code . cr
+."Should throw 938 " cr
+."Updated storage: " cr updated_storage_3 <s csr. cr
+
+
+// =============================================================================== //
+// ================================== NEXT TEST ================================== //
+// =============================================================================== //
+
+113 meta message 0 code <s updated_storage_2 c7 runvmctx 
+
+constant updated_storage_3
+constant exit_code
+."Exit code " exit_code . cr
+."Updated storage: " cr updated_storage_3 <s csr. cr

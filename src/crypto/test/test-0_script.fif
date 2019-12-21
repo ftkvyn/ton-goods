@@ -1,0 +1,57 @@
+//	=================================
+//	=====	TEST FOR seller.fc	=====
+//	=================================
+//	Given:
+//		=> Not initialized seller
+//	Testing:
+//		=> Initializing
+
+"TonUtil.fif" include
+
+"test_key" constant key_name
+0 constant seqno
+
+key_name +".pk" load-generate-keypair 
+constant key_priv
+constant key_pub
+
+dictnew constant goods_dict
+dictnew constant clients_price_requests
+dictnew constant clients_price_responses
+
+<b 
+    seqno 32 u, 
+    key_pub B,
+    1 1 u, // is_open
+    0 Gram, // request is free
+    goods_dict dict,
+    clients_price_requests dict,
+    clients_price_responses dict,
+	<b "test name" $, b> ref,
+ b> constant storage
+
+<b
+   0 4 u, // Mode, 0 = initializing the contract
+   seqno 32 u,
+b>
+constant init_message
+
+init_message hash key_priv ed25519_sign_uint constant signature
+
+<b
+   signature B, init_message ref, b>
+ <s constant signed_message
+
+signed_message -1 code <s storage c7 runvmctx // Init
+
+constant updated_storage
+constant exit_code
+."Updated storage: " cr updated_storage <s csr. cr
+."Exit code " exit_code . cr cr
+
+85143 code <s updated_storage c7 runvmctx // seqno
+
+drop // updated storage
+drop // exit code
+."Seqno (should be 1): " cr
+.dump cr cr

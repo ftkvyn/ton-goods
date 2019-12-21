@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Buyer's app!</title>
+    <!-- https://electronjs.org/docs/tutorial/security#csp-meta-tag -->
+	<meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';" />
+	<link rel="stylesheet" href="./styles/main.css">
+  </head>
+  <body>
+    <h1>Buyer's app!</h1>
+
+	<p id='config_validation_txt'></p>
+
+	<section class='buyers-area card'>
+		<h2>Buyers <div class="reload" id='load_buyers'>↺</div> </h2>
+		<div id='buyers-container'>
+			<ul id='buyersEl'></ul>
+		</div>
+		<form id='new_contract_form' class="card">
+			<h3>Create new buyer contract</h3>
+			<input type="text" name="info" required placeholder="Buyer name" maxlength="100"/>
+			<input type="submit" class="btn" value="Create" />
+		</form>
+		<!-- <form id='add_known_buyer' class="card">
+			<h3>Add existing buyer contract</h3>
+			<input type="text" name="addr" required placeholder="Buyer contract address (incl. wc)"/>
+			<input type="submit" class="btn" value="Add" />
+		</form> -->
+	</section>
+
+	<section class='one-buyer-area card' style="display: none;width: 500px;">
+		<div id='requests-container'>
+			<ul id='requestsEl'></ul>
+		</div>
+		<form id='new_request_form' class="card">
+			<h3>Create new price request</h3>
+			<p>Items:</p>
+			<div class="card request-item">
+				<input type="number" name="itemId" placeholder="Item id" />
+				<input type="number" name="quantity" placeholder="Quantity" />
+				<button class="btn red remove-item">Remove</button>
+			</div>
+			<div>
+				<button class="btn add-item" >Add item</button>
+				<input type="submit" class="btn" value="Create" />
+			</div>
+		</form>
+	</section>
+
+	<section class='order-send-area card' style="display: none;">
+		<h3>Create new price request</h3>
+		<form id='seller_info_form' class="card">
+			<h4>Seller info</h4>
+			<p>Provide seller addres (HEX 256-bit integer, without workchain):</p>
+			<p>sample value: <i>8847ee9498a2192a20f42c2146d2924e90ac39cab3b56c1d3e9c0f5c74448c0f</i></p>
+			<input type="text" style="width: 600px;" name="seller_addr" placeholder="Seller address" required/>
+			<input type="submit" class="btn" value="Get seller info" />
+		</form>
+		<form id='send_request_form' class="card">
+			<h4>Sending request to</h4>
+			<p id=seller_info></p>
+			<input type="text" name="seller_addr" style="width: 600px;" readonly='readonly' placeholder="Seller address" required/>
+			<input type="text" name="query_id" readonly='readonly' placeholder="Selected request" required/>
+			<p id='query_items'></p>
+			<input type="hidden" name="seller_addr_int"/>
+			<input type="number" name="amount" step="0.001" placeholder="Amount" />
+			<input type="submit" class="btn" disabled='disabled' value="Send request" />
+		</form>
+	</section>
+
+	<section class='responses-area card' style="display: none;min-width: 500px;">
+		<h3>Responses for the request</h3>
+		<h4></h4>
+		<ul id="respsEl">
+		</ul>
+	</section>
+
+	<script>
+		const { ipcRenderer } = require('electron');
+	</script>
+	
+	<script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
+	<script src="./ui_scripts/jquery-3.4.1.min.js"></script>
+	<script>if (window.module) module = window.module;</script>
+
+	<script src="./ui_scripts/validate.js"></script>
+	<script src="./ui_scripts/contracts.js"></script>
+	<script>
+		validateConfig(config_validation_txt);
+	</script>
+  </body>
+</html>

@@ -1,0 +1,54 @@
+#!/usr/bin/env fift -s
+"TonUtil.fif" include
+
+{ ."usage: " @' $0 type ." <buyer-addr-file> <buyer-key-name> <seqno> <query-id> <amount> <seller-addr> [<savefile>]" cr
+  ."Creates a new price request that the buyer may send to a seller." cr
+  ."Buyer address is taken from <buyer-addr-file>.addr" cr
+  ."Buyer contract owner's private key is loaded from the file <buyer-key-name>.pk." cr
+  ."Query id of the request that is to be sent is provided in <query-id>." cr
+  ."<amount> is the amount of Grams to be sent along with the reques. Needed for sellers who have not free price estimation." cr
+  ."Seller's address (without workchain) is provided as a decimal or hex number as <seller-addr>." cr
+  ."The seller contract must be in the same workchain as the buyer." cr
+  ."Saves it into <savefile>.boc ('new-price-request-send-query.boc' by default)" cr
+  1 halt
+} : usage
+$# dup 6 < swap 7 > or ' usage if
+$1 =: buyer_addr_file
+$2 =: key_name
+$3 parse-int =: seqno
+$4 parse-int =: query_id
+$5 $>GR =: amount
+$6 parse-int =: selller_addr
+
+def? $7 { @' $7 } { "new-price-request-send-query" } cond constant savefile
+
+buyer_addr_file +".addr" load-address
+2dup 2constant buyer_addr
+."Buyer address = " 2dup .addr cr 6 .Addr cr
+
+buyer_addr drop constant wc
+
+key_name +".pk" load-keypair 
+constant key_priv
+constant key_pub
+
+."Requesting price for request query_id=" query_id .dump cr
+
+<b
+   2 4 u, // Mode, 2 = sending an order to a seller
+   seqno 32 u,
+   query_id 32 u, // query_id
+   amount Gram,
+   selller_addr 256 u,
+b>
+constant send_order_message
+
+send_order_message hash key_priv ed25519_sign_uint constant signature
+
+
+<b b{1000100} s, buyer_addr addr, 0 Gram, b{00} s,
+   signature B, send_order_message ref, b>
+dup ."resulting external message: " <s csr. cr
+2 boc+>B dup Bx. cr
+savefile +".boc" tuck B>file
+."(Saved to file " type .")" cr

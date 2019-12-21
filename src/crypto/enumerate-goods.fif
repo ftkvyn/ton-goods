@@ -1,0 +1,59 @@
+#!/usr/bin/env fift -s
+"TonUtil.fif" include
+
+{ ."usage: " @' $0 type ." <number-of-goods> [<item-id> <item-quantity>]" cr
+  ."Example of fift code that reads a list of goods and creates goods dict" cr
+  1 halt
+} : usage
+$# 1 < ' usage if
+$1 parse-int =: goods-num
+
+goods-num 2 * 1 + constant min_params
+
+$# dup min_params < swap min_params 1 + > or ' usage if
+
+dictnew constant goods-dict
+
+."Loading item ids " cr
+
+goods-dict
+// [ dict
+2 // param number
+// [dict, num
+{
+	dup 
+	// [dict, num, num
+	$() parse-int // item-id
+	// [dict, num, id
+	dup . cr // printing item-id
+	// [dict, num, id
+	swap
+	// [dict, id, num
+	1 +
+	// [dict, id, num + 1
+	dup
+	// [dict, id, num + 1, num + 1
+	$() parse-int // item-quantity
+	// [dict, id, num + 1, quantity
+	<b swap 32 u, b> <s
+	// [dict, id, num + 1, quantity_slice
+	2 roll
+	// [dict, num + 1, quantity_slice, id
+	3 roll
+	// [num + 1, quantity_slice, id, dict
+	32
+	// [num + 1, quantity_slice, id, dict, 32
+	udict! // udict! (val_slice x_key Dict n_key_len => D0 −1
+	// [num + 1, dict, -1
+	drop // result of adding to the dict
+	// [num + 1, dict, -1
+	swap
+	// [dict, num + 1
+	1 +
+	// [dict, num + 2
+} goods-num times
+
+drop
+constant goods-dict
+
+goods-dict .dump

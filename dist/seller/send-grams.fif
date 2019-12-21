@@ -1,0 +1,47 @@
+#!/usr/bin/env fift -s
+"TonUtil.fif" include
+
+{ ."usage: " @' $0 type ." <addr-file> <key-name> <seqno> <dest-addr> <amount> [<savefile>]" cr
+  ."Sends an amount of Grams to other address." cr
+  ."Contract address is taken from <addr-file>.addr" cr
+  ."Owner's private key is loaded from the file <key-name>.pk." cr
+  ."Saves it into <savefile>.boc ('send-grams-query.boc' by default)" cr
+  1 halt
+} : usage
+$# dup 5 < swap 6 > or ' usage if
+
+false constant bounce
+
+$1 =: contract_addr_file
+$2 =: key_name
+$3 parse-int =: seqno
+$4 bounce parse-load-address =: bounce 2=: dest_addr
+$5 $>GR =: amount
+
+3 constant send-mode  // mode for SENDRAWMSG: +1 - sender pays fees, +2 - ignore errors
+
+$6 "send-grams-query" replace-if-null =: savefile
+
+9 constant mode // Mode, 9 = Send money anywhere, as in simple wallet
+
+contract_addr_file +".addr" load-address
+2dup 2constant contract_addr
+."Contract address = " 2dup .addr cr 6 .Addr cr
+
+key_name +".pk" load-keypair 
+constant key_priv
+constant key_pub
+
+<b b{01} s, 0 1 i, b{000100} s, dest_addr addr, amount Gram, 0 107 u, 
+b> constant internal_msg
+<b mode 4 u, seqno 32 u, send-mode 8 u, internal_msg ref, b>
+constant message
+
+message hash key_priv ed25519_sign_uint constant signature
+
+<b b{1000100} s, contract_addr addr, 0 Gram, b{00} s,
+   signature B, message ref, b>
+dup ."resulting external message: " <s csr. cr
+2 boc+>B dup Bx. cr
+savefile +".boc" tuck B>file
+."(Saved to file " type .")" cr

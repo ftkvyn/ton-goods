@@ -1,0 +1,1199 @@
+"Asm.fif" include
+// automatically generated from `./src/crypto/lib/stdlib.fc` `./src/crypto/common.fc` `./src/crypto/seller.fc` 
+PROGRAM{
+  DECLPROC get_my_workchain
+  84712 DECLMETHOD get_my_wc
+  DECLPROC save_internal_data
+  DECLPROC load_internal_data
+  DECLPROC send_money_back
+  DECLPROC send_price_back
+  DECLPROC create_order
+  DECLPROC create_price_resp
+  DECLPROC recv_internal
+  DECLPROC remove_client_entries
+  DECLPROC remove_expired_entries
+  DECLPROC save_price_resp
+  DECLPROC recv_external
+  85143 DECLMETHOD seqno
+  71178 DECLMETHOD info
+  74757 DECLMETHOD get_is_open
+  80504 DECLMETHOD get_request_price
+  103624 DECLMETHOD get_client_orders
+  81759 DECLMETHOD get_new_clients
+  117312 DECLMETHOD get_known_goods
+  get_my_workchain PROC:<{
+    MYADDR
+    REWRITESTDADDR
+    DROP
+  }>
+  get_my_wc PROC:<{
+    get_my_workchain CALLDICT
+  }>
+  save_internal_data PROC:<{
+    NEWC
+    s1 s8 XCHG
+    32 STU
+    s1 s6 XCHG
+    256 STU
+    s1 s4 XCHG
+    1 STU
+    SWAP
+    s0 s2 XCHG
+    STGRAMS
+    STDICT
+    STDICT
+    STDICT
+    STREF
+    ENDC
+    c4 POP
+  }>
+  load_internal_data PROC:<{
+    c4 PUSH
+    CTOS
+    32 LDU
+    256 LDU
+    1 LDU
+    LDGRAMS
+    LDDICT
+    LDDICT
+    LDDICT
+    LDREF
+    DROP
+  }>
+  send_money_back PROC:<{
+    s0 s2 XCHG
+    REWRITESTDADDR
+    0 PUSHINT
+    196 PUSHINT
+    NEWC
+    9 STU
+    s1 s3 XCHG
+    8 STI
+    256 STU
+    SWAP
+    s0 s2 XCHG
+    STGRAMS
+    107 STU
+    ENDC
+    SWAP
+    SENDRAWMSG
+  }>
+  send_price_back PROC:<{
+    get_my_workchain CALLDICT
+    NEWC
+    s1 s3 XCHG
+    32 STU
+    STREF
+    ENDC
+    1 PUSHINT
+    196 PUSHINT
+    NEWC
+    9 STU
+    s1 s3 XCHG
+    8 STI
+    s1 s3 XCHG
+    256 STU
+    0 PUSHINT
+    STGRAMS
+    107 STU
+    STREF
+    ENDC
+    3 PUSHINT
+    SENDRAWMSG
+  }>
+  create_order PROC:<{
+    s0 s5 XCHG
+    REWRITESTDADDR
+    get_my_workchain CALLDICT
+    SWAP
+    s0 s2 XCHG
+    EQUAL
+    370 THROWIFNOT
+    8 PUSHPOW2
+    OVER
+    SWAP
+    s7 PUSH
+    SWAP
+    DICTUGET
+    NULLSWAPIFNOT
+    NEWDICT
+    SWAP
+    IF:<{
+      DROP
+      LDDICT
+      DROP
+    }>ELSE<{
+      SWAP
+      DROP
+    }>
+    NEWDICT
+    0 PUSHINT
+    UNTIL:<{
+      32 PUSHINT
+      s7 PUSH
+      SWAP
+      DICTUGETNEXT
+      NULLSWAPIFNOT
+      NULLSWAPIFNOT
+      DUP
+      IF:<{
+        32 PUSHINT
+        s2 PUSH
+        SWAP
+        s8 PUSH
+        SWAP
+        DICTUGET
+        NULLSWAPIFNOT
+        NIP
+        IF:<{
+          s0 s2 XCHG
+          32 LDU
+          DROP
+          NEWC
+          32 STU
+          32 PUSHINT
+          s1 s2 XCHG
+          OVER
+          s1 s5 XCHG
+          s0 s5 XCHG
+          DICTUSETB
+        }>ELSE<{
+          s1 s3 XCHG
+          s0 s2 XCHG
+          DROP
+        }>
+      }>ELSE<{
+        s1 s3 XCHG
+        s0 s2 XCHG
+        DROP
+      }>
+      SWAP
+      NOT
+      s1 s2 XCHG
+    }>
+    DROP
+    s3 POP
+    s4 POP
+    NEWC
+    s1 s3 XCHG
+    32 STU
+    STDICT
+    32 PUSHINT
+    s1 s3 XCHG
+    s2 s4 XCHG
+    DICTUSETB
+    NEWC
+    STDICT
+    8 PUSHPOW2
+    s1 s3 XCHG
+    DICTUSETB
+  }>
+  create_price_resp PROC:<{
+    NEWC
+    SWAP
+    s0 s4 XCHG
+    STGRAMS
+    s1 s3 XCHG
+    4 STU
+    32 STU
+    STDICT
+    ENDC
+  }>
+  recv_internal PROC:<{
+    SWAP
+    CTOS
+    4 LDU
+    1 PUSHINT
+    s1 s2 XCHG
+    AND
+    IFJMP:<{
+      DROP
+      DROP
+      DROP
+    }>
+    OVER
+    SEMPTY
+    IFJMP:<{
+      DROP
+      DROP
+      DROP
+    }>
+    load_internal_data CALLDICT
+    s0 s8 XCHG
+    LDMSGADDR
+    DROP
+    s0 s9 XCHG
+    4 LDU
+    32 LDU
+    s7 PUSH
+    0 EQINT
+    IFJMP:<{
+      DROP
+      DROP
+      DROP
+      DROP
+      DROP
+      DROP
+      DROP
+      DROP
+      DROP
+      DROP
+      DROP
+      NIP
+      0 PUSHINT
+      64 PUSHINT
+      send_money_back CALLDICT
+    }>
+    s2 PUSH
+    1 EQINT
+    IFJMP:<{
+      s2 POP
+      s5 PUSH
+      s12 PUSH
+      GREATER
+      101 THROWIF
+      SWAP
+      LDREF
+      DROP
+      CTOS
+      32 LDU
+      NOW
+      s2 PUSH
+      SWAP
+      LESS
+      202 THROWIF
+      LDDICT
+      DROP
+      s11 PUSH
+      s0 s4 XCHG
+      s1 s2 XCHG
+      s6 PUSH
+      SWAP
+      s0 s6 XCHG
+      create_order CALLDICT
+      s3 PUSH
+      s1 s2 XCHG
+      s0 s8 XCHG
+      save_internal_data CALLDICT
+      s2 PUSH
+      OVER
+      GREATER
+      IF:<{
+        s1 s2 XCHG
+        SUB
+        0 PUSHINT
+        send_money_back CALLDICT
+      }>ELSE<{
+        DROP
+        DROP
+        DROP
+      }>
+    }>
+    DROP
+    SWAP
+    2 EQINT
+    IFJMP:<{
+      s9 PUSH
+      REWRITESTDADDR
+      DUMPSTK
+      get_my_workchain CALLDICT
+      SWAP
+      s0 s2 XCHG
+      EQUAL
+      370 THROWIFNOT
+      8 PUSHPOW2
+      OVER
+      SWAP
+      s4 PUSH
+      SWAP
+      DICTUGET
+      NULLSWAPIFNOT
+      523 THROWIFNOT
+      LDDICT
+      DROP
+      32 PUSHINT
+      s3 PUSH
+      SWAP
+      s2 PUSH
+      SWAP
+      DICTUGET
+      NULLSWAPIFNOT
+      525 THROWIFNOT
+      LDREF
+      DROP
+      CTOS
+      LDGRAMS
+      OVER
+      s15 PUSH
+      GREATER
+      938 THROWIF
+      4 LDU
+      SWAP
+      1 EQINT
+      384 THROWIFNOT
+      32 LDU
+      NOW
+      s2 PUSH
+      SWAP
+      LESS
+      938 THROWIF
+      LDDICT
+      DROP
+      2 PUSHINT
+      s3 PUSH
+      s0 s3 XCHG
+      s0 s2 XCHG
+      SWAP
+      create_price_resp CALLDICT
+      NEWC
+      STREF
+      32 PUSHINT
+      s1 s3 XCHG
+      s2 s5 XCHG
+      DICTUSETB
+      NEWC
+      STDICT
+      8 PUSHPOW2
+      s1 s3 XCHG
+      s1 s4 XCHG
+      DICTUSETB
+      SWAP
+      s0 s8 XCHG
+      save_internal_data CALLDICT
+      s2 PUSH
+      OVER
+      GREATER
+      IF:<{
+        s1 s2 XCHG
+        SUB
+        0 PUSHINT
+        send_money_back CALLDICT
+      }>ELSE<{
+        DROP
+        DROP
+        DROP
+      }>
+    }>
+    DROP
+    DROP
+    DROP
+    DROP
+    DROP
+    DROP
+    DROP
+    DROP
+    DROP
+    DROP
+    DROP
+    404 THROW
+  }>
+  remove_client_entries PROC:<{
+    8 PUSHPOW2
+    OVER
+    s1 s4 XCHG
+    s0 s4 XCHG
+    DICTUDEL
+    DROP
+    8 PUSHPOW2
+    s2 s3 XCHG
+    s1 s3 XCHG
+    DICTUDEL
+    DROP
+  }>
+  remove_expired_entries PROC:<{
+    OVER
+    ISNULL
+    IFNOT:<{
+      0 PUSHINT
+      UNTIL:<{
+        8 PUSHPOW2
+        s3 PUSH
+        SWAP
+        DICTUGETNEXT
+        NULLSWAPIFNOT
+        NULLSWAPIFNOT
+        DUP
+        IF:<{
+          s2 PUSH
+          ISNULL
+          IFNOT:<{
+            0 PUSHINT
+            s0 s3 XCHG
+            LDDICT
+            DROP
+            UNTIL:<{
+              32 PUSHINT
+              s1 s4 XCHG
+              s4 PUSH
+              SWAP
+              DICTUGETNEXT
+              NULLSWAPIFNOT
+              NULLSWAPIFNOT
+              DUP
+              IF:<{
+                s0 s2 XCHG
+                32 LDU
+                DROP
+                NOW
+                LESS
+                IF:<{
+                  32 PUSHINT
+                  OVER
+                  s1 s6 XCHG
+                  s0 s6 XCHG
+                  DICTUDEL
+                  DROP
+                }>ELSE<{
+                  s0 s4 XCHG
+                }>
+              }>ELSE<{
+                s1 s5 XCHG
+                s0 s2 XCHG
+                DROP
+              }>
+              SWAP
+              NOT
+            }>
+            DROP
+            s2 POP
+          }>ELSE<{
+            s0 s2 XCHG
+            DROP
+          }>
+        }>ELSE<{
+          s0 s2 XCHG
+          DROP
+        }>
+        SWAP
+        NOT
+      }>
+      DROP
+    }>
+    DUP
+    ISNULL
+    IFNOT:<{
+      0 PUSHINT
+      UNTIL:<{
+        8 PUSHPOW2
+        s2 PUSH
+        SWAP
+        DICTUGETNEXT
+        NULLSWAPIFNOT
+        NULLSWAPIFNOT
+        DUP
+        IF:<{
+          s2 PUSH
+          ISNULL
+          IFNOT:<{
+            s0 s2 XCHG
+            LDDICT
+            DROP
+            0 PUSHINT
+            UNTIL:<{
+              32 PUSHINT
+              s2 PUSH
+              SWAP
+              DICTUGETNEXT
+              NULLSWAPIFNOT
+              NULLSWAPIFNOT
+              DUP
+              IF:<{
+                s0 s2 XCHG
+                LDGRAMS
+                NIP
+                4 LDU
+                32 LDU
+                DROP
+                SWAP
+                1 EQINT
+                IF:<{
+                  NOW
+                  LESS
+                  IF:<{
+                    32 PUSHINT
+                    OVER
+                    s1 s4 XCHG
+                    s0 s4 XCHG
+                    DICTUDEL
+                    DROP
+                  }>ELSE<{
+                    s0 s2 XCHG
+                  }>
+                }>ELSE<{
+                  s1 s3 XCHG
+                  DROP
+                }>
+              }>ELSE<{
+                s1 s3 XCHG
+                s0 s2 XCHG
+                DROP
+              }>
+              SWAP
+              NOT
+              s1 s2 XCHG
+            }>
+            DROP
+            NEWC
+            STDICT
+            8 PUSHPOW2
+            s1 s2 XCHG
+            OVER
+            s1 s5 XCHG
+            s0 s5 XCHG
+            DICTUSETB
+          }>ELSE<{
+            s1 s3 XCHG
+            s0 s2 XCHG
+            DROP
+          }>
+        }>ELSE<{
+          s1 s3 XCHG
+          s0 s2 XCHG
+          DROP
+        }>
+        SWAP
+        NOT
+        s1 s2 XCHG
+      }>
+      DROP
+    }>
+  }>
+  save_price_resp PROC:<{
+    8 PUSHPOW2
+    s2 PUSH
+    SWAP
+    s4 PUSH
+    SWAP
+    DICTUGET
+    NULLSWAPIFNOT
+    NEWDICT
+    SWAP
+    IF:<{
+      DROP
+      LDDICT
+      DROP
+    }>ELSE<{
+      SWAP
+      DROP
+    }>
+    NEWC
+    s1 s5 XCHG
+    STREF
+    32 PUSHINT
+    s1 s3 XCHG
+    s1 s5 XCHG
+    DICTUSETB
+    NEWC
+    STDICT
+    8 PUSHPOW2
+    s1 s3 XCHG
+    s1 s2 XCHG
+    DICTUSETB
+  }>
+  recv_external PROC:<{
+    9 PUSHPOW2
+    LDSLICEX
+    LDREF
+    DROP
+    load_internal_data CALLDICT
+    s8 PUSH
+    HASHCU
+    SWAP
+    s0 s10 XCHG
+    s7 PUSH
+    CHKSIGNU
+    1341 THROWIFNOT
+    s0 s7 XCHG
+    CTOS
+    4 LDU
+    32 LDU
+    s8 PUSH
+    SWAP
+    s0 s2 XCHG
+    EQUAL
+    35 THROWIFNOT
+    s0 s7 XCHG
+    INC
+    OVER
+    0 EQINT
+    IFJMP:<{
+      NIP
+      s6 POP
+      s5 PUSH
+      1 EQINT
+      11 THROWIFNOT
+      ACCEPT
+      s5 s7 XCHG
+      s4 s6 XCHG
+      s3 s5 XCHG
+      s2 s4 XCHG
+      s1 s3 XCHG
+      s0 s2 XCHG
+      SWAP
+      save_internal_data CALLDICT
+      -1 PUSHINT
+    }>
+    OVER
+    1 EQINT
+    IFJMP:<{
+      NIP
+      s0 s6 XCHG
+      256 LDU
+      DUMPSTK
+      32 LDU
+      8 PUSHPOW2
+      s3 PUSH
+      SWAP
+      s5 PUSH
+      SWAP
+      DICTUGET
+      NULLSWAPIFNOT
+      921 THROWIFNOT
+      LDDICT
+      DROP
+      32 PUSHINT
+      s3 PUSH
+      SWAP
+      s2 PUSH
+      SWAP
+      DICTUGET
+      NULLSWAPIFNOT
+      923 THROWIFNOT
+      32 LDU
+      DROP
+      NOW
+      LESS
+      972 THROWIF
+      ACCEPT
+      SWAP
+      LDGRAMS
+      32 LDU
+      LDDICT
+      DROP
+      32 PUSHINT
+      s5 PUSH
+      s0 s2 XCHG
+      s1 s5 XCHG
+      s0 s5 XCHG
+      DICTUDEL
+      DROP
+      NEWC
+      STDICT
+      8 PUSHPOW2
+      s1 s2 XCHG
+      s6 PUSH
+      s0 s2 XCHG
+      s1 s8 XCHG
+      s0 s8 XCHG
+      DICTUSETB
+      1 PUSHINT
+      s2 s3 XCHG
+      s2 s6 XCHG
+      s1 s6 XCHG
+      create_price_resp CALLDICT
+      DUP
+      s0 s10 XCHG
+      s3 PUSH
+      s3 PUSH
+      save_price_resp CALLDICT
+      s7 s8 XCHG
+      s6 s8 XCHG
+      s5 s8 XCHG
+      s4 s8 XCHG
+      s3 s8 XCHG
+      s2 s8 XCHG
+      SWAP
+      s0 s10 XCHG
+      save_internal_data CALLDICT
+      s0 s2 XCHG
+      SWAP
+      send_price_back CALLDICT
+      -1 PUSHINT
+    }>
+    OVER
+    2 EQINT
+    IFJMP:<{
+      NIP
+      s0 s6 XCHG
+      32 LDU
+      DROP
+      1 PUSHINT
+      NEWC
+      1 STU
+      32 PUSHINT
+      s1 s3 XCHG
+      s1 s4 XCHG
+      DICTUSETB
+      ACCEPT
+      s5 s7 XCHG
+      s4 s6 XCHG
+      s3 s5 XCHG
+      s2 s4 XCHG
+      s0 s3 XCHG
+      s1 s2 XCHG
+      save_internal_data CALLDICT
+      -1 PUSHINT
+    }>
+    OVER
+    3 EQINT
+    IFJMP:<{
+      NIP
+      s0 s6 XCHG
+      32 LDU
+      DROP
+      32 PUSHINT
+      s1 s2 XCHG
+      s1 s3 XCHG
+      DICTUDEL
+      DROP
+      ACCEPT
+      s5 s7 XCHG
+      s4 s6 XCHG
+      s3 s5 XCHG
+      s2 s4 XCHG
+      s0 s3 XCHG
+      s1 s2 XCHG
+      save_internal_data CALLDICT
+      -1 PUSHINT
+    }>
+    OVER
+    4 EQINT
+    IFJMP:<{
+      NIP
+      s4 POP
+      s0 s5 XCHG
+      1 LDU
+      DROP
+      ACCEPT
+      s3 s7 XCHG
+      s4 s6 XCHG
+      s0 s5 XCHG
+      s2 s4 XCHG
+      s1 s3 XCHG
+      s0 s2 XCHG
+      SWAP
+      save_internal_data CALLDICT
+      -1 PUSHINT
+    }>
+    OVER
+    6 EQINT
+    IFJMP:<{
+      NIP
+      s6 POP
+      SWAP
+      s0 s6 XCHG
+      remove_expired_entries CALLDICT
+      s5 s7 XCHG
+      s4 s6 XCHG
+      s3 s5 XCHG
+      s2 s4 XCHG
+      s2 s3 XCHG
+      s1 s2 XCHG
+      SWAP
+      save_internal_data CALLDICT
+      -1 PUSHINT
+    }>
+    OVER
+    7 EQINT
+    IFJMP:<{
+      NIP
+      s0 s6 XCHG
+      256 LDU
+      DROP
+      s1 s2 XCHG
+      s1 s7 XCHG
+      remove_client_entries CALLDICT
+      s5 s7 XCHG
+      s4 s6 XCHG
+      s3 s5 XCHG
+      s2 s4 XCHG
+      s2 s3 XCHG
+      s1 s2 XCHG
+      SWAP
+      save_internal_data CALLDICT
+      -1 PUSHINT
+    }>
+    s6 POP
+    DUP
+    9 EQINT
+    IF:<{
+      s0 s6 XCHG
+      8 LDU
+      LDREF
+      s0 s2 XCHG
+      SENDRAWMSG
+    }>ELSE<{
+      s0 s6 XCHG
+    }>
+    s0 s6 XCHG
+    15 EQINT
+    IFJMP:<{
+      s0 s5 XCHG
+      256 LDU
+      DROP
+      ACCEPT
+      s4 s7 XCHG
+      s0 s6 XCHG
+      s3 s5 XCHG
+      s2 s4 XCHG
+      s1 s3 XCHG
+      s1 s2 XCHG
+      SWAP
+      save_internal_data CALLDICT
+      -1 PUSHINT
+    }>
+    DROP
+    DROP
+    DROP
+    DROP
+    DROP
+    DROP
+    DROP
+    DROP
+    404 PUSHINT
+  }>
+  seqno PROC:<{
+    load_internal_data CALLDICT
+    DROP
+    DROP
+    DROP
+    DROP
+    DROP
+    DROP
+    DROP
+  }>
+  info PROC:<{
+    load_internal_data CALLDICT
+    NIP
+    NIP
+    NIP
+    NIP
+    NIP
+    NIP
+    NIP
+    CTOS
+  }>
+  get_is_open PROC:<{
+    load_internal_data CALLDICT
+    DROP
+    DROP
+    DROP
+    DROP
+    DROP
+    NIP
+    NIP
+  }>
+  get_request_price PROC:<{
+    load_internal_data CALLDICT
+    DROP
+    DROP
+    DROP
+    DROP
+    NIP
+    NIP
+    NIP
+  }>
+  get_client_orders PROC:<{
+    load_internal_data CALLDICT
+    DROP
+    DROP
+    NIP
+    NIP
+    NIP
+    NIP
+    NIP
+    DUP
+    ISNULL
+    IFJMP:<{
+      DROP
+      DROP
+      PUSHNULL
+    }>
+    8 PUSHPOW2
+    DICTUGET
+    NULLSWAPIFNOT
+    IFNOTJMP:<{
+      DROP
+      PUSHNULL
+    }>
+    DUP
+    ISNULL
+    IFJMP:<{
+      DROP
+      PUSHNULL
+    }>
+    PUSHNULL
+    0 PUSHINT
+    s0 s2 XCHG
+    LDDICT
+    DROP
+    UNTIL:<{
+      32 PUSHINT
+      s1 s3 XCHG
+      s3 PUSH
+      SWAP
+      DICTUGETNEXT
+      NULLSWAPIFNOT
+      NULLSWAPIFNOT
+      DUP
+      IF:<{
+        PUSHNULL
+        0 PUSHINT
+        s0 s4 XCHG
+        32 LDU
+        LDDICT
+        DROP
+        UNTIL:<{
+          32 PUSHINT
+          s1 s6 XCHG
+          s6 PUSH
+          SWAP
+          DICTUGETNEXT
+          NULLSWAPIFNOT
+          NULLSWAPIFNOT
+          DUP
+          IF:<{
+            s0 s2 XCHG
+            32 LDU
+            DROP
+            OVER
+            SWAP
+            PAIR
+            s1 s4 XCHG
+            CONS
+          }>ELSE<{
+            s1 s4 XCHG
+            s0 s2 XCHG
+            DROP
+          }>
+          SWAP
+          NOT
+          s3 s6 XCHG
+          s1 s3 XCHG
+        }>
+        DROP
+        s4 POP
+        s2 PUSH
+        s0 s2 XCHG
+        s1 s4 XCHG
+        s0 s4 XCHG
+        TRIPLE
+        s1 s3 XCHG
+        CONS
+      }>ELSE<{
+        s1 s3 XCHG
+        s0 s2 XCHG
+        DROP
+      }>
+      SWAP
+      NOT
+      s2 s3 XCHG
+      s1 s2 XCHG
+    }>
+    DROP
+    NIP
+  }>
+  get_new_clients PROC:<{
+    load_internal_data CALLDICT
+    DROP
+    DROP
+    NIP
+    NIP
+    NIP
+    NIP
+    NIP
+    DUP
+    ISNULL
+    IFJMP:<{
+      DROP
+      PUSHNULL
+    }>
+    0 PUSHINT
+    PUSHNULL
+    get_my_workchain CALLDICT
+    UNTIL:<{
+      8 PUSHPOW2
+      s1 s3 XCHG
+      s4 PUSH
+      SWAP
+      DICTUGETNEXT
+      NULLSWAPIFNOT
+      NULLSWAPIFNOT
+      s2 POP
+      OVER
+      IF:<{
+        s3 PUSH
+        OVER
+        PAIR
+        s1 s3 XCHG
+        CONS
+      }>ELSE<{
+        s0 s2 XCHG
+      }>
+      SWAP
+      NOT
+      s2 s3 XCHG
+      s1 s2 XCHG
+    }>
+    DROP
+    NIP
+    NIP
+  }>
+  get_known_goods PROC:<{
+    load_internal_data CALLDICT
+    DROP
+    DROP
+    DROP
+    NIP
+    NIP
+    NIP
+    NIP
+    DUP
+    ISNULL
+    IFJMP:<{
+      DROP
+      PUSHNULL
+    }>
+    0 PUSHINT
+    PUSHNULL
+    UNTIL:<{
+      32 PUSHINT
+      s1 s2 XCHG
+      s3 PUSH
+      SWAP
+      DICTUGETNEXT
+      NULLSWAPIFNOT
+      NULLSWAPIFNOT
+      s2 POP
+      OVER
+      IF:<{
+        s0 s2 XCHG
+        s2 PUSH
+        PAIR
+      }>ELSE<{
+        s0 s2 XCHG
+      }>
+      SWAP
+      NOT
+    }>
+    NIP
+    NIP
+  }>
+}END>c
+constant code
+
+"TonUtil.fif" include
+
+// New seller script
+// Created by Andrei Marchenko <ftkvyn@gmail.com>
+
+{ ."usage: " @' $0 type ." <workchain-id> <seller-key> <is-open> <request-price> <name> <number-of-goods> [<item-id>] [<filename-base>]" cr
+  ."Creates a new seller contract in specified workchain, with private key saved to or loaded from <seller-key>.pk" cr
+  ."<is-open> - should the shop be open right after deployment or not. Set 1 for it to be open and 0 for closed." cr
+  ."<request-price> - price in Grams that each buyer should attach to each price estimation request. Set it to 0 to make requests free." cr
+  ."<number-of-goods> is the number of <item-id>." cr
+  ."<number-of-goods> must be greater than 0, items ids are divided by space" cr
+  1 halt
+} : usage
+$# 8 < ' usage if
+
+$1 parse-workchain-id =: wc    // set workchain id from command line argument
+$2 =: seller-key
+$3 parse-int =: is-open
+$4 $>GR =: request-price
+$5 =: name
+$6 parse-int =: goods-num
+
+goods-num 6 + constant min_params
+
+$# dup min_params < swap min_params 1 + > or ' usage if
+
+$# min_params > { @' min_params 1 + $() } { "new-seller" } cond constant file-base
+
+is-open 0 = is-open 1 = or ' usage ifnot // checking that is-open is correct
+
+request-price 0 > request-price 0 = or ' usage ifnot // checking that price is non-negative
+
+0 constant seqno
+
+."Creating new seller in workchain " wc . cr
+
+seller-key +".pk" load-generate-keypair 
+constant key_priv
+constant key_pub
+
+dictnew constant goods_dict
+
+goods_dict
+// [ dict
+7 // param number
+// [dict, num
+{
+	dup 
+	// [dict, num, num
+	$() parse-int // item-id
+	// [dict, num, id
+	dup . cr // printing item-id
+	// [dict, num, id
+	swap
+	// [dict, id, num
+	1 +
+	// [dict, id, num + 1
+	1
+	// [dict, id, num + 1, 1
+	<b swap 32 u, b> <s
+	// [dict, id, num + 1, quantity_slice
+	2 roll
+	// [dict, num + 1, quantity_slice, id
+	3 roll
+	// [num + 1, quantity_slice, id, dict
+	32
+	// [num + 1, quantity_slice, id, dict, 32
+	udict! // udict! (val_slice x_key Dict n_key_len => D0 −1
+	// [num + 1, dict, -1
+	drop // result of adding to the dict
+	// [num + 1, dict, -1
+	swap
+	// [dict, num + 1
+} goods-num times
+
+drop
+constant goods_dict
+
+
+dictnew constant clients_price_requests
+dictnew constant clients_price_responses
+
+<b 
+    seqno 32 u,
+    key_pub B,
+    is-open 1 u,
+    request-price Gram,
+    goods_dict dict,
+    clients_price_requests dict,
+    clients_price_responses dict,
+	<b name $, b> ref,
+ b> constant storage
+
+<b b{0011} s, code ref, storage ref, null dict, b> constant state-init  // create StateInit
+state-init .s
+state-init ."StateInit: " <s csr. cr
+state-init hash wc swap 2dup 2constant reg_addr
+."new seller address = " 2dup .addr cr
+2dup file-base +".addr" save-address-verbose
+."Non-bounceable address (for init): " 2dup 7 .Addr cr
+."Bounceable address (for later access): " 6 .Addr cr
+<b 0 4 u, // mode=0 initialization
+   seqno 32 u, // seq_no
+b>
+constant new_contract_msg
+new_contract_msg
+.s cr
+dup ."signing message: " <s csr. cr
+new_contract_msg hash key_priv ed25519_sign_uint constant signature
+drop
+<b b{1000100} s, reg_addr addr, b{000010} s, state-init <s s, b{0} s, signature B, new_contract_msg ref, b>
+dup ."External message for initialization is " <s csr. cr
+2 boc+>B dup Bx. cr
+file-base +".boc" tuck B>file
+."(Saved seller creating query to file " type .")" cr

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Seller's app!</title>
+    <!-- https://electronjs.org/docs/tutorial/security#csp-meta-tag -->
+	<meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';" />
+	<link rel="stylesheet" href="./styles/main.css">
+	
+  </head>
+  <body>
+    <h1>Seller's app!</h1>
+
+	<p id='config_validation_txt'></p>
+
+	<section class='stores-area card'>
+		<h2>Sellers <div class="reload" id='load_stores'>↺</div> </h2>
+		<div id='stores-container'>
+			<ul id='storesEl'></ul>
+		</div>
+		<form id='new_contract_form' class="card">
+			<h3>Create new seller contract</h3>
+			<input type="text" name="name" required placeholder="Store name" maxlength="100"/>
+			<input type="number" step="0.001" name="price" required placeholder="Request price"/>
+			<label for="is_open">Is open</label><input type="checkbox" checked="checked" name="is_open" id="is_open"/>
+			<p>Items:</p>
+			<input type="number" name="itemId" placeholder="New item id" />
+			<button class="btn add-item" >Add item</button>
+			<input type="submit" class="btn" value="Create" />
+		</form>
+	</section>
+
+	<section class='store-clients card' style="display: none;min-width: 500px;">
+		<h2>Clients of the store <div class="reload" id='load_clients'>↺</div></h2>
+		<h3 id="store-name"></h3>
+		<div id='clients-container'>
+			<ul id='clientsEl'></ul>
+		</div>
+		
+	</section>
+
+	<section class='client-orders card' style="display: none;min-width: 500px;">
+		<h2 id="orders-title">Orders of <span id='client-name'></span></h2>
+		<div>
+			<ul id='requestsEl'></ul>
+		</div>
+	</section>
+
+	<section class='response-area card' style="display: none;min-width: 500px;">
+		<h2>Respond to the order</h2>
+		<p id='order-title'></p>
+		<p>Items:</p>
+		<form id='response_form' class="card">
+			
+			<div style="width: 100%;">
+				<input type="number" required name="price" step="0.001" placeholder="Price"/>
+				<input type="submit" class="btn" value="Send" />
+			</div>
+		</form>
+	</section>
+
+	<div id='item-template' style="display: none;">
+		<div class="card request-item">
+			ItemID:<label></label><br/>
+			Quantity:<input type="number" name="quantity" placeholder="Quantity" />
+			<button class="btn red remove-item">Remove</button>
+		</div>
+	</div>
+
+	<script>
+		const { ipcRenderer } = require('electron');
+	</script>
+	
+	<script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
+	<script src="./ui_scripts/jquery-3.4.1.min.js"></script>
+	<script>if (window.module) module = window.module;</script>
+
+	<script src="./ui_scripts/validate.js"></script>
+	<script src="./ui_scripts/contracts.js"></script>
+	<script>
+		validateConfig(config_validation_txt);
+	</script>
+  </body>
+</html>

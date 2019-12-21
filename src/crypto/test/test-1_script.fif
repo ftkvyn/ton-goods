@@ -1,0 +1,138 @@
+//	=================================
+//	=====	TEST FOR seller.fc	=====
+//	=================================
+//	Given:
+//		=> Seller with initialized list of goods
+//	Testing:
+//		=> Creating new price request
+//		=> Getting client orders
+//		=> Getting goods list
+
+"TonUtil.fif" include
+
+"test_key" constant key_name
+60 60 * 24 * 7 * constant timeout   // request expires in 7 days
+7 constant seqno
+0 107458758920502048355401576498620765193386872457718870803507922532699518331328 2constant buyer_addr // key = 177847121
+
+key_name +".pk" load-generate-keypair 
+constant key_priv
+constant key_pub
+
+dictnew constant goods_dict
+
+// Known goods
+
+<b 1 1 u, b> <s 55 goods_dict 32 udict!
+
+drop
+constant goods_dict
+
+<b 1 1 u, b> <s 45 goods_dict 32 udict!
+
+drop
+constant goods_dict
+
+<b 1 1 u, b> <s 72 goods_dict 32 udict!
+
+drop
+constant goods_dict
+
+<b 1 1 u, b> <s 9 goods_dict 32 udict!
+
+drop
+constant goods_dict
+
+dictnew constant clients_price_requests
+dictnew constant clients_price_responses
+
+<b 
+    seqno 32 u, 
+    key_pub B,
+    1 1 u, // is_open
+    0 Gram, // request is free
+    goods_dict dict,
+    clients_price_requests dict,
+    clients_price_responses dict,
+	<b "test name" $, b> ref,
+ b> constant storage
+
+<b b{1000100} s, buyer_addr addr, 0 Gram, b{00} s, b> constant meta
+
+// <b 0 4 u, b{100} s, 0 8 i, 555634 256 u, b> constant meta
+
+dictnew constant order_dict
+
+<b 12 32 u, b> <s 9 order_dict 32 udict!
+
+drop
+constant order_dict
+
+<b 2 32 u, b> <s 45 order_dict 32 udict!
+
+drop
+constant order_dict
+
+<b 52 32 u, b> <s 7 order_dict 32 udict!
+
+drop
+constant order_dict
+
+
+<b
+   now timeout + 32 u, 
+   order_dict dict,
+   b>
+ constant order
+
+<b
+   1 4 u, // Mode, 1 = create an order
+   9999 32 u, 
+   order ref, b>
+ <s constant message
+
+."Message: " cr message csr. cr
+."Storage: " cr storage <s csr. cr
+
+0 meta message 0 code <s storage c7 runvmctx // Test for creating an order
+
+constant updated_storage
+constant exit_code
+."Exit code " exit_code . cr
+."Updated storage: " cr updated_storage <s csr. cr
+
+// =============================================================================== //
+// ================================== NEXT TEST ================================== //
+// =============================================================================== //
+
+81759 code <s updated_storage c7 runvmctx // new clients
+
+constant updated_storage
+constant exit_code
+constant return
+."Exit code " exit_code . cr
+."Updated storage: " cr updated_storage <s csr. cr
+."New clients: " cr return .s drop cr cr
+
+// =============================================================================== //
+// ================================== NEXT TEST ================================== //
+// =============================================================================== //
+
+buyer_addr 103624 code <s updated_storage c7 runvmctx // client orders
+
+constant updated_storage
+constant exit_code
+."Exit code " exit_code . cr
+."Client orders: " cr
+.dump cr cr
+
+// =============================================================================== //
+// ================================== NEXT TEST ================================== //
+// =============================================================================== //
+
+117312 code <s updated_storage c7 runvmctx // known goods
+
+constant updated_storage
+constant exit_code
+."Known goods list: " cr
+.dump cr cr

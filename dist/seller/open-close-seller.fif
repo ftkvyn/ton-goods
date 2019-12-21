@@ -1,0 +1,46 @@
+#!/usr/bin/env fift -s
+"TonUtil.fif" include
+
+{ ."usage: " @' $0 type ." <seller-addr-file> <seller-key-name> <seqno> <is-open> [<savefile>]" cr
+  ."Opens or closes the seller." cr
+  ."Seller address is taken from <seller-addr-file>.addr" cr
+  ."Seller contract owner's private key is loaded from the file <seller-key-name>.pk." cr
+  ."<is-open> set to 1 to open a store or to 0 to close it." cr
+  ."Saves it into <savefile>.boc ('edit-goods-query.boc' by default)" cr
+  1 halt
+} : usage
+$# dup 4 < swap 5 > or ' usage if
+$1 =: seller_addr_file
+$2 =: key_name
+$3 parse-int =: seqno
+$4 parse-int =: is_open
+
+$5 "open-close-query" replace-if-null =: savefile
+
+is_open 0 = is_open 1 = or ' usage ifnot // checking that is-open is correct
+
+4 constant mode // Mode, 4 = opening or closing the store
+
+seller_addr_file +".addr" load-address
+2dup 2constant seller_addr
+."Seller address = " 2dup .addr cr 6 .Addr cr
+
+key_name +".pk" load-keypair 
+constant key_priv
+constant key_pub
+
+<b
+   mode 4 u, // Mode, 4 = opening or closing the store
+   seqno 32 u,
+   is_open 1 u, // New item id
+b>
+constant edit_goods_message
+
+edit_goods_message hash key_priv ed25519_sign_uint constant signature
+
+<b b{1000100} s, seller_addr addr, 0 Gram, b{00} s,
+   signature B, edit_goods_message ref, b>
+dup ."resulting external message: " <s csr. cr
+2 boc+>B dup Bx. cr
+savefile +".boc" tuck B>file
+."(Saved to file " type .")" cr

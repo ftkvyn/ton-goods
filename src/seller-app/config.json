@@ -1,0 +1,6 @@
+{
+	"lite-client-config" : "/home/ftkvyn/projects/scripts-ton/ton-lite-client-test1.config.json",
+	"lite-client-bin": "/home/ftkvyn/projects/build-ton/lite-client/lite-client",
+	"data-storage": "/home/ftkvyn/projects/ton-projects/goods/temp/data.seller.json",
+	"fift-folder": "/home/ftkvyn/projects/ton-projects/goods/dist/seller"
+}

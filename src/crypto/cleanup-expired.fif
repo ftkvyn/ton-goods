@@ -1,0 +1,41 @@
+#!/usr/bin/env fift -s
+"TonUtil.fif" include
+
+{ ."usage: " @' $0 type ." <addr-file> <key-name> <seqno> [<savefile>]" cr
+  ."Cleans up expired requests and reqponses." cr
+  ."Contract address is taken from <addr-file>.addr" cr
+  ."Owner's private key is loaded from the file <key-name>.pk." cr
+  ."Saves it into <savefile>.boc ('clean-expired-query.boc' by default)" cr
+  1 halt
+} : usage
+$# dup 3 < swap 4 > or ' usage if
+$1 =: contract_addr_file
+$2 =: key_name
+$3 parse-int =: seqno
+
+$4 "clean-expired-query" replace-if-null =: savefile
+
+6 constant mode // Mode, 6 = Cleanup - remove expired requests and responses.
+
+contract_addr_file +".addr" load-address
+2dup 2constant contract_addr
+."Contract address = " 2dup .addr cr 6 .Addr cr
+
+key_name +".pk" load-keypair 
+constant key_priv
+constant key_pub
+
+<b
+   mode 4 u,
+   seqno 32 u,
+b>
+constant message
+
+message hash key_priv ed25519_sign_uint constant signature
+
+<b b{1000100} s, contract_addr addr, 0 Gram, b{00} s,
+   signature B, message ref, b>
+dup ."resulting external message: " <s csr. cr
+2 boc+>B dup Bx. cr
+savefile +".boc" tuck B>file
+."(Saved to file " type .")" cr

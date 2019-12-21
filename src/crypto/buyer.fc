@@ -1,0 +1,441 @@
+;; Creates and order:
+;;	=> request id (based on seqno)
+;;	=> list of products needed
+;;	=> timeout when the request will no longer be valid <7 days by default>
+
+;; Sends the request to a seller
+
+;; Recieves response from the sellers:
+;;	=> seller address
+;;	=> request id
+;;	=> price
+;;	=> timeout until when the price will be valid <7 days by default>
+;;	=> missing products
+
+;; For each response:
+;;	-> remove it
+;;	-> create a payment
+;;	-> create a new request for missing goods
+
+;;	Remove expired requests
+
+;;	Remove request (removes responses as well)
+
+;;	Remove all responses for request
+
+;; GET: list of requests
+;; GET: list of responses for request
+
+;; Data: 
+;;	=> seqno uint 32
+;;	=> key uint 256
+;;	=> requests_dict dict<query_id, request_req>
+;;		=> request_req: expiry u 32, goods dict<id, quantity>
+;;	=> responses_dict dict<query_id, request_res>
+;;		=> request_res: dict<seller addr, estimate>
+;;		=> estimate: expiry u 32, price, goods dict<id, quantity>
+
+() save_internal_data(int seqno, int public_key, cell requests_dict, cell responses_dict, cell info) impure {
+	set_data(begin_cell()
+		.store_uint(seqno, 32)
+		.store_uint(public_key, 256)
+		.store_dict(requests_dict) ;; Created price requests, ready to be sent to sellers.
+
+		;;	Requests dictionary format:
+		;;		Key - query id, timestamp, u 32
+		;;		Value - Request
+		;;		Request format: expiry u 32, dict of goods
+		;;			Key - item id, u 32
+		;;			Value - quantity proposed, u 32
+
+		.store_dict(responses_dict)	;; Responses from the sellers.
+
+		;;	Responses dict formst:
+		;;		Key - query id, timestamp, u 32
+		;;		Value - dictionary of price responses
+
+		;;	One price response dict formst:
+		;;		Key - seller addr, u 256
+		;;		Value - price estimate cell
+
+		;;	Price estimate cell format:
+		;;		Expiry, timestamp 32 u, - until when the price is valid
+		;;		Price, Gram
+		;;		Dict of proposed goods:
+		;;			Key - item id, u 32
+		;;			Value - quantity proposed, u 32
+		.store_ref(info)
+		.end_cell());
+}
+
+;; (int seqno, int public_key, cell requests_dict, cell responses_dict, cell info)
+(int, int, cell, cell, cell) load_internal_data() {
+	slice data_slice = get_data().begin_parse();
+	int seqno = data_slice~load_uint(32);
+	int public_key = data_slice~load_uint(256);
+
+	cell requests_dict = data_slice~load_dict();
+	cell responses_dict = data_slice~load_dict();
+	cell info = data_slice~load_ref();
+
+	return (seqno, public_key, requests_dict, responses_dict, info);
+}
+
+cell save_price_response(cell responses_dict, int price, int seller_addr, int query_id, int expires, cell goods_dict) {
+	(slice request_prices, int is_found) = responses_dict.udict_get?(32, query_id);
+	cell request_prices_dict = new_dict();
+	if (is_found) {
+		request_prices_dict = request_prices~load_dict();
+	}
+
+	builder price_storage = begin_cell()
+		.store_uint(expires, 32)
+		.store_grams(price)
+		.store_dict(goods_dict)
+		;
+
+	request_prices_dict~udict_set_builder(256, seller_addr, price_storage);
+	responses_dict~udict_set_builder(32, query_id, begin_cell().store_dict(request_prices_dict));
+
+	return responses_dict;
+}
+
+() recv_internal(int msg_value, cell in_msg_cell, slice in_msg) impure {
+
+	slice msg_slice = in_msg_cell.begin_parse();
+	int flags = msg_slice~load_uint(4);  ;; int_msg_info$0 ihr_disabled:Bool bounce:Bool bounced:Bool
+	if (flags & 1) {
+		;; ignore all bounced messages
+		return ();
+	}
+
+	if (in_msg.slice_empty?()) {
+		;; inbound message has empty body
+		return ();
+	}
+
+	slice sender_addr = msg_slice~load_msg_addr();
+	(int wc, int seller_addr_int) = sender_addr.parse_std_addr();
+	dump_stack();
+	int query_id = in_msg~load_uint(32);
+	slice resp_body = in_msg~load_ref().begin_parse();
+
+	int price = resp_body~load_grams();
+	int status = resp_body~load_uint(4);
+	int expires = resp_body~load_uint(32);
+	cell goods_dict = resp_body~load_dict();
+	dump_stack();
+
+	(int stored_seqno, int public_key, cell requests_dict, cell responses_dict, cell info) = load_internal_data();
+
+	responses_dict = save_price_response(responses_dict, price, seller_addr_int, query_id, expires, goods_dict);
+
+	save_internal_data(stored_seqno, public_key, requests_dict, responses_dict, info);
+}
+
+() send_request(cell body, int query_id, int seller_addr, int amount) impure {
+	int wc = get_my_workchain();
+
+	cell request_body = begin_cell()
+		.store_uint(1, 4) ;; Mode, 1 = price request
+		.store_uint(query_id, 32)
+		.store_ref(body)
+		.end_cell();
+
+	var msg = begin_cell()
+	;;	.store_uint(0, 1) ;; 0 <= format indicator int_msg_info$0 
+	;;	.store_uint(1, 1) ;; 1 <= ihr disabled
+	;;	.store_uint(1, 1) ;; 1 <= bounce = true
+	;;	.store_uint(0, 1) ;; 0 <= bounced = false
+	;;	.store_uint(4, 5)  ;; 00100 <= address flags, anycast = false, 8-bit workchain 
+		.store_uint (196, 9)
+		.store_int(wc, 8)
+		.store_uint(seller_addr, 256)
+		.store_grams(amount)
+		.store_uint(1, 107)
+	;;	.store_uint(0, 106) ;; 106 zeroes 
+	;;	.store_uint(0, 1) ;; + 1 as an indicator that there is a cell with the data.
+		.store_ref(request_body)
+		.end_cell();
+
+	send_raw_message(msg, 3); ;; 3 = mode, 1 for sender paying fees and 2 for ignoring errors.
+}
+
+() send_payment(int query_id, int seller_addr, int amount) impure {
+	int wc = get_my_workchain();
+
+	cell request_body = begin_cell()
+		.store_uint(2, 4) ;; Mode, 2 = paying for the goods
+		.store_uint(query_id, 32)
+		.end_cell();
+
+	var msg = begin_cell()
+	;;	.store_uint(0, 1) ;; 0 <= format indicator int_msg_info$0 
+	;;	.store_uint(1, 1) ;; 1 <= ihr disabled
+	;;	.store_uint(1, 1) ;; 1 <= bounce = true
+	;;	.store_uint(0, 1) ;; 0 <= bounced = false
+	;;	.store_uint(4, 5)  ;; 00100 <= address flags, anycast = false, 8-bit workchain
+		.store_uint (196, 9)
+		.store_int(wc, 8)
+		.store_uint(seller_addr, 256)
+		.store_grams(amount)
+		.store_uint(1, 107)
+	;;	.store_uint(0, 106) ;; 106 zeroes 
+	;;	.store_uint(0, 1) ;; + 1 as an indicator that there is a cell with the data.
+		.store_ref(request_body);
+	send_raw_message(msg.end_cell(), 3); ;; 3 = mode, 1 for sender paying fees and 2 for ignoring errors.
+}
+
+(cell, cell) remove_expired_entries(cell requests_dict, cell responses_dict) {
+	ifnot (requests_dict.null?()) {
+		int last_request_id = 0;
+
+		do {
+			(last_request_id, slice request, int is_found) = requests_dict.udict_get_next?(32, last_request_id);
+			if (is_found) {
+				slice request_body = request~load_ref().begin_parse();
+				int expires = request_body~load_uint(32);
+				if (expires < now()) {
+					requests_dict~udict_delete?(32, last_request_id);
+				}
+			}
+		} until (~ is_found);
+	}
+
+	ifnot (responses_dict.null?()) {
+		int last_request_id = 0;
+		do {
+			(last_request_id, slice request_responses, int is_found) = responses_dict.udict_get_next?(32, last_request_id);
+			if (is_found) {
+				ifnot (request_responses.null?()) {
+					int last_seller_addr = 0;
+					cell request_responses_dict = request_responses~load_dict();
+
+					do {
+						(last_seller_addr, slice response, int is_resp_found) = request_responses_dict.udict_get_next?(256, last_seller_addr);
+						if (is_found) {
+							int expires = response~load_uint(32);
+							if (expires < now()) {
+								request_responses_dict~udict_delete?(256, last_seller_addr);
+							}
+						}
+					} until (~ is_resp_found);
+					responses_dict~udict_set_builder(32, last_request_id, begin_cell().store_dict(request_responses_dict));
+				}
+			}
+		} until (~ is_found);
+	}
+	
+	return (requests_dict, responses_dict);
+}
+
+_ recv_external(slice in_msg) impure {
+	var signature = in_msg~load_bits(512);
+	cell msg_body = in_msg~load_ref();
+
+	(int stored_seqno, int public_key, cell requests_dict, cell responses_dict, cell info) = load_internal_data();
+
+	throw_unless(1341, check_signature(cell_hash(msg_body), signature, public_key));
+
+	slice msg_slice = msg_body.begin_parse();
+	int mode = msg_slice~load_uint(4);
+
+	int msg_seqno = msg_slice~load_uint(32);
+	throw_unless(35, stored_seqno == msg_seqno);
+	stored_seqno = stored_seqno + 1;
+
+	;; Initializaion. Works only on the first run, when stored_seqno == 0
+	if (mode == 0) {
+		throw_unless(11, stored_seqno == 1);
+
+		accept_message();
+
+		save_internal_data(stored_seqno, public_key, requests_dict, responses_dict, info);
+
+		return -1;
+	}
+
+	if (mode == 1) { ;; Create a new request. Not sending it yet though.
+		int query_id = msg_slice~load_uint(32);
+		(_, int is_found) = requests_dict.udict_get?(32, query_id);
+		throw_if(271, is_found); ;; request with such id exists
+		accept_message();
+
+		cell request_body = msg_slice~load_ref(); ;; request body contains expiration date and dictionary with goods.
+		requests_dict~udict_set_builder(32, query_id, begin_cell().store_ref(request_body));
+
+		save_internal_data(stored_seqno, public_key, requests_dict, responses_dict, info);
+
+		return -1;
+	}
+
+	if (mode == 2) { ;; Send a created request to a seller.
+		int query_id = msg_slice~load_uint(32);
+		(slice request, int is_found) = requests_dict.udict_get?(32, query_id);
+		throw_unless(276, is_found); ;; no request with such id exists
+		cell request_body = request~load_ref();
+
+		int amount = msg_slice~load_grams(); ;; payment for the request estimation.
+		int seller_addr = msg_slice~load_uint(256);
+		dump_stack();
+		accept_message();
+
+		send_request(request_body, query_id, seller_addr, amount);
+
+		save_internal_data(stored_seqno, public_key, requests_dict, responses_dict, info);
+
+		return -1;
+	}
+
+	if (mode == 3) { ;; Pay for an estimated request.
+		int query_id = msg_slice~load_uint(32);
+
+		int amount = msg_slice~load_grams(); ;; payment for the goods.
+		int seller_addr = msg_slice~load_uint(256);
+
+		(slice resps, int is_found) = responses_dict.udict_get?(32, query_id);
+		throw_unless(277, is_found); ;; no responces for this request
+
+		cell query_responses_dict = resps~load_dict();
+		(slice price_resp, int is_found) = query_responses_dict.udict_get?(256, seller_addr);
+		throw_unless(278, is_found); ;; no responces from this seller
+
+		int expires = price_resp~load_uint(32);
+		throw_if(121, expires < now()); ;; price estimation expired
+		int price = price_resp~load_grams();
+		throw_if(432, amount < price); ;; not enough money, won't work
+
+		accept_message();
+
+		send_payment(query_id, seller_addr, amount);
+
+		save_internal_data(stored_seqno, public_key, requests_dict, responses_dict, info);
+
+		return -1;
+	}
+
+	if (mode == 4) { ;; Cleanup - remove all responses for a request
+		int query_id = msg_slice~load_uint(32);
+		accept_message();
+
+		ifnot (responses_dict.null?()) {
+			responses_dict~udict_delete?(32, query_id);
+		}
+
+		save_internal_data(stored_seqno, public_key, requests_dict, responses_dict, info);
+		return -1;
+	}
+
+	if (mode == 6) { ;; Cleanup - remove expired requests and responses
+		accept_message();
+		(requests_dict, responses_dict) = remove_expired_entries(requests_dict, responses_dict);
+		save_internal_data(stored_seqno, public_key, requests_dict, responses_dict, info);
+		return -1;
+	}
+
+	if (mode == 9) { ;; Send money anywhere, as in simple wallet
+		int send_mode = msg_slice~load_uint(8);
+		send_raw_message(msg_slice~load_ref(), send_mode);
+		return -1;
+	}
+
+	if (mode == 11) { ;; Cleanup - remove a request
+		int query_id = msg_slice~load_uint(32);
+		requests_dict~udict_delete?(32, query_id);
+
+		accept_message();
+
+		save_internal_data(stored_seqno, public_key, requests_dict, responses_dict, info);
+
+		return -1;
+	}
+
+	if (mode == 15) { ;; Update public key
+		int new_public_key = msg_slice~load_uint(256);
+		accept_message();
+		save_internal_data(stored_seqno, new_public_key, requests_dict, responses_dict, info);
+		return -1;
+	}
+
+	return 404;
+}
+
+int seqno() method_id {
+	(int seqno, _, _, _, _) = load_internal_data();
+	return seqno;
+}
+
+_ get_requests() method_id {
+	(_, _, cell requests_dict, _, _) = load_internal_data();
+	if (requests_dict.null?()) {
+		return nil;
+	}
+
+	var requests_list = nil;
+	int last_request_id = 0;
+
+	do {
+		(last_request_id, slice request, int is_found) = requests_dict.udict_get_next?(32, last_request_id);
+		if (is_found) {
+			var goods = nil;
+			int last_item_id = 0;
+			slice request_body = request~load_ref().begin_parse();
+			int expires = request_body~load_uint(32);
+			cell request_dict = request_body~load_dict();
+			do {
+				(last_item_id, slice item_request, int is_item_found) = request_dict.udict_get_next?(32, last_item_id);
+				if (is_item_found) {
+					int quantity = item_request~load_uint(32);
+					goods = cons(goods, pair(last_item_id, quantity));
+				}
+			} until(~ is_item_found);
+			requests_list = cons(requests_list, triple(last_request_id, expires, goods));
+		}
+	} until (~ is_found);
+	return requests_list;
+}
+
+_ get_responses(int request_id) method_id {
+	(_, _, _, cell responses_dict, _) = load_internal_data();
+	if (responses_dict.null?()) {
+		return nil;
+	}
+	int wc = get_my_workchain();
+
+	(slice request_responses, int is_found) = responses_dict.udict_get?(32, request_id);
+	ifnot (is_found) {
+		return nil;
+	}
+	if (request_responses.null?()) {
+		return nil;
+	}
+
+	var responses_list = nil;
+	int last_seller_addr = 0;
+	cell request_responses_dict = request_responses~load_dict();
+
+	do {
+		(last_seller_addr, slice response, int is_found) = request_responses_dict.udict_get_next?(256, last_seller_addr);
+		if (is_found) {
+			var goods = nil;
+			int last_item_id = 0;
+			int expires = response~load_uint(32);
+			int price = response~load_grams();
+			cell response_dict = response~load_dict();
+			do {
+				(last_item_id, slice item_request, int is_item_found) = response_dict.udict_get_next?(32, last_item_id);
+				if (is_item_found) {
+					int quantity = item_request~load_uint(32);
+					goods = cons(goods, pair(last_item_id, quantity));
+				}
+			} until(~ is_item_found);
+			responses_list = cons(responses_list, tuple4( pair(wc, last_seller_addr) , expires, price, goods));
+		}
+	} until (~ is_found);
+	return responses_list;
+}
+
+_ info() method_id {
+    (_, _, _, _, cell info) = load_internal_data();
+    return info.begin_parse();
+}

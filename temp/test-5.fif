@@ -1,0 +1,1032 @@
+"Asm.fif" include
+// automatically generated from `./src/crypto/lib/stdlib.fc` `./src/crypto/common.fc` `./src/crypto/buyer.fc` 
+PROGRAM{
+  DECLPROC get_my_workchain
+  84712 DECLMETHOD get_my_wc
+  DECLPROC save_internal_data
+  DECLPROC load_internal_data
+  DECLPROC save_price_response
+  DECLPROC recv_internal
+  DECLPROC send_request
+  DECLPROC send_payment
+  DECLPROC remove_expired_entries
+  DECLPROC recv_external
+  85143 DECLMETHOD seqno
+  73617 DECLMETHOD get_requests
+  87810 DECLMETHOD get_responses
+  71178 DECLMETHOD info
+  get_my_workchain PROC:<{
+    MYADDR
+    REWRITESTDADDR
+    DROP
+  }>
+  get_my_wc PROC:<{
+    get_my_workchain CALLDICT
+  }>
+  save_internal_data PROC:<{
+    NEWC
+    s1 s5 XCHG
+    32 STU
+    s1 s3 XCHG
+    256 STU
+    STDICT
+    STDICT
+    STREF
+    ENDC
+    c4 POP
+  }>
+  load_internal_data PROC:<{
+    c4 PUSH
+    CTOS
+    32 LDU
+    256 LDU
+    LDDICT
+    LDDICT
+    LDREF
+    DROP
+  }>
+  save_price_response PROC:<{
+    32 PUSHINT
+    s3 PUSH
+    SWAP
+    s7 PUSH
+    SWAP
+    DICTUGET
+    NULLSWAPIFNOT
+    NEWDICT
+    SWAP
+    IF:<{
+      DROP
+      LDDICT
+      DROP
+    }>ELSE<{
+      SWAP
+      DROP
+    }>
+    NEWC
+    s1 s3 XCHG
+    32 STU
+    SWAP
+    s0 s5 XCHG
+    STGRAMS
+    s1 s4 XCHG
+    STDICT
+    8 PUSHPOW2
+    s1 s3 XCHG
+    s1 s2 XCHG
+    s1 s4 XCHG
+    DICTUSETB
+    NEWC
+    STDICT
+    32 PUSHINT
+    s1 s3 XCHG
+    DICTUSETB
+  }>
+  recv_internal PROC:<{
+    s2 POP
+    CTOS
+    4 LDU
+    1 PUSHINT
+    s1 s2 XCHG
+    AND
+    IFJMP:<{
+      DROP
+      DROP
+    }>
+    OVER
+    SEMPTY
+    IFJMP:<{
+      DROP
+      DROP
+    }>
+    LDMSGADDR
+    DROP
+    REWRITESTDADDR
+    NIP
+    DUMPSTK
+    SWAP
+    32 LDU
+    LDREF
+    DROP
+    CTOS
+    LDGRAMS
+    4 LDU
+    NIP
+    32 LDU
+    LDDICT
+    DROP
+    DUMPSTK
+    load_internal_data CALLDICT
+    s1 s5 XCHG
+    s4 s7 XCHG
+    s3 s9 XCHG
+    s2 s8 XCHG
+    s1 s6 XCHG
+    s0 s6 XCHG
+    save_price_response CALLDICT
+    s2 s4 XCHG
+    s2 s3 XCHG
+    SWAP
+    save_internal_data CALLDICT
+  }>
+  send_request PROC:<{
+    get_my_workchain CALLDICT
+    1 PUSHINT
+    NEWC
+    4 STU
+    s1 s4 XCHG
+    32 STU
+    s1 s4 XCHG
+    STREF
+    ENDC
+    1 PUSHINT
+    196 PUSHINT
+    NEWC
+    9 STU
+    s1 s4 XCHG
+    8 STI
+    s1 s2 XCHG
+    256 STU
+    SWAP
+    s0 s3 XCHG
+    STGRAMS
+    107 STU
+    STREF
+    ENDC
+    3 PUSHINT
+    SENDRAWMSG
+  }>
+  send_payment PROC:<{
+    get_my_workchain CALLDICT
+    2 PUSHINT
+    NEWC
+    4 STU
+    s1 s4 XCHG
+    32 STU
+    ENDC
+    1 PUSHINT
+    196 PUSHINT
+    NEWC
+    9 STU
+    s1 s5 XCHG
+    8 STI
+    s1 s3 XCHG
+    256 STU
+    SWAP
+    STGRAMS
+    s1 s2 XCHG
+    107 STU
+    STREF
+    ENDC
+    3 PUSHINT
+    SENDRAWMSG
+  }>
+  remove_expired_entries PROC:<{
+    OVER
+    ISNULL
+    IFNOT:<{
+      0 PUSHINT
+      UNTIL:<{
+        32 PUSHINT
+        s3 PUSH
+        SWAP
+        DICTUGETNEXT
+        NULLSWAPIFNOT
+        NULLSWAPIFNOT
+        DUP
+        IF:<{
+          s0 s2 XCHG
+          LDREF
+          DROP
+          CTOS
+          32 LDU
+          DROP
+          NOW
+          LESS
+          IF:<{
+            32 PUSHINT
+            OVER
+            s1 s5 XCHG
+            s0 s5 XCHG
+            DICTUDEL
+            DROP
+          }>ELSE<{
+            s0 s3 XCHG
+          }>
+        }>ELSE<{
+          s1 s4 XCHG
+          s0 s2 XCHG
+          DROP
+        }>
+        SWAP
+        NOT
+        s1 s3 XCHG
+      }>
+      DROP
+    }>
+    DUP
+    ISNULL
+    IFNOT:<{
+      0 PUSHINT
+      UNTIL:<{
+        32 PUSHINT
+        s2 PUSH
+        SWAP
+        DICTUGETNEXT
+        NULLSWAPIFNOT
+        NULLSWAPIFNOT
+        DUP
+        IF:<{
+          s2 PUSH
+          ISNULL
+          IFNOT:<{
+            0 PUSHINT
+            s0 s3 XCHG
+            LDDICT
+            DROP
+            UNTIL:<{
+              8 PUSHPOW2
+              s1 s4 XCHG
+              s4 PUSH
+              SWAP
+              DICTUGETNEXT
+              NULLSWAPIFNOT
+              NULLSWAPIFNOT
+              s3 PUSH
+              IF:<{
+                s0 s2 XCHG
+                32 LDU
+                DROP
+                NOW
+                LESS
+                IF:<{
+                  8 PUSHPOW2
+                  OVER
+                  s1 s6 XCHG
+                  s0 s6 XCHG
+                  DICTUDEL
+                  DROP
+                }>ELSE<{
+                  s0 s4 XCHG
+                }>
+              }>ELSE<{
+                s1 s5 XCHG
+                s0 s2 XCHG
+                DROP
+              }>
+              SWAP
+              NOT
+            }>
+            s3 POP
+            NEWC
+            s1 s3 XCHG
+            STDICT
+            32 PUSHINT
+            s1 s2 XCHG
+            OVER
+            s1 s5 XCHG
+            s0 s5 XCHG
+            DICTUSETB
+          }>ELSE<{
+            s1 s3 XCHG
+            s0 s2 XCHG
+            DROP
+          }>
+        }>ELSE<{
+          s1 s3 XCHG
+          s0 s2 XCHG
+          DROP
+        }>
+        SWAP
+        NOT
+        s1 s2 XCHG
+      }>
+      DROP
+    }>
+  }>
+  recv_external PROC:<{
+    9 PUSHPOW2
+    LDSLICEX
+    LDREF
+    DROP
+    load_internal_data CALLDICT
+    s5 PUSH
+    HASHCU
+    SWAP
+    s0 s7 XCHG
+    s4 PUSH
+    CHKSIGNU
+    1341 THROWIFNOT
+    s0 s4 XCHG
+    CTOS
+    4 LDU
+    32 LDU
+    s5 PUSH
+    SWAP
+    s0 s2 XCHG
+    EQUAL
+    35 THROWIFNOT
+    s0 s4 XCHG
+    INC
+    OVER
+    0 EQINT
+    IFJMP:<{
+      NIP
+      s3 POP
+      s2 PUSH
+      1 EQINT
+      11 THROWIFNOT
+      ACCEPT
+      s2 s4 XCHG
+      s1 s3 XCHG
+      s0 s2 XCHG
+      save_internal_data CALLDICT
+      -1 PUSHINT
+    }>
+    OVER
+    1 EQINT
+    IFJMP:<{
+      NIP
+      s0 s3 XCHG
+      32 LDU
+      32 PUSHINT
+      s2 PUSH
+      SWAP
+      s4 PUSH
+      SWAP
+      DICTUGET
+      NULLSWAPIFNOT
+      NIP
+      271 THROWIF
+      ACCEPT
+      LDREF
+      DROP
+      NEWC
+      STREF
+      32 PUSHINT
+      s1 s3 XCHG
+      DICTUSETB
+      s2 s4 XCHG
+      s1 s3 XCHG
+      s0 s2 XCHG
+      save_internal_data CALLDICT
+      -1 PUSHINT
+    }>
+    OVER
+    2 EQINT
+    IFJMP:<{
+      NIP
+      s0 s3 XCHG
+      32 LDU
+      32 PUSHINT
+      s2 PUSH
+      SWAP
+      s4 PUSH
+      SWAP
+      DICTUGET
+      NULLSWAPIFNOT
+      276 THROWIFNOT
+      LDREF
+      DROP
+      SWAP
+      LDGRAMS
+      256 LDU
+      DROP
+      DUMPSTK
+      ACCEPT
+      s2 s3 XCHG
+      SWAP
+      send_request CALLDICT
+      s2 s4 XCHG
+      s1 s3 XCHG
+      s0 s2 XCHG
+      save_internal_data CALLDICT
+      -1 PUSHINT
+    }>
+    OVER
+    3 EQINT
+    IFJMP:<{
+      NIP
+      s0 s3 XCHG
+      32 LDU
+      LDGRAMS
+      256 LDU
+      DROP
+      32 PUSHINT
+      s3 PUSH
+      SWAP
+      s8 PUSH
+      SWAP
+      DICTUGET
+      NULLSWAPIFNOT
+      277 THROWIFNOT
+      LDDICT
+      DROP
+      8 PUSHPOW2
+      s2 PUSH
+      s0 s2 XCHG
+      SWAP
+      DICTUGET
+      NULLSWAPIFNOT
+      278 THROWIFNOT
+      32 LDU
+      NOW
+      s1 s2 XCHG
+      LESS
+      121 THROWIF
+      LDGRAMS
+      DROP
+      s2 PUSH
+      SWAP
+      LESS
+      432 THROWIF
+      ACCEPT
+      SWAP
+      send_payment CALLDICT
+      s2 s4 XCHG
+      s1 s3 XCHG
+      s0 s2 XCHG
+      save_internal_data CALLDICT
+      -1 PUSHINT
+    }>
+    OVER
+    4 EQINT
+    IFJMP:<{
+      NIP
+      s0 s3 XCHG
+      32 LDU
+      DROP
+      ACCEPT
+      s4 PUSH
+      ISNULL
+      IFNOT:<{
+        32 PUSHINT
+        s1 s2 XCHG
+        s1 s5 XCHG
+        DICTUDEL
+        DROP
+      }>ELSE<{
+        s1 s4 XCHG
+        DROP
+      }>
+      s2 s4 XCHG
+      s1 s3 XCHG
+      s1 s2 XCHG
+      SWAP
+      save_internal_data CALLDICT
+      -1 PUSHINT
+    }>
+    OVER
+    6 EQINT
+    IFJMP:<{
+      NIP
+      s3 POP
+      ACCEPT
+      SWAP
+      s0 s3 XCHG
+      remove_expired_entries CALLDICT
+      s2 s4 XCHG
+      s1 s2 XCHG
+      SWAP
+      save_internal_data CALLDICT
+      -1 PUSHINT
+    }>
+    OVER
+    9 EQINT
+    IFJMP:<{
+      DROP
+      DROP
+      DROP
+      DROP
+      NIP
+      NIP
+      8 LDU
+      LDREF
+      DROP
+      SWAP
+      SENDRAWMSG
+      -1 PUSHINT
+    }>
+    OVER
+    11 EQINT
+    IFJMP:<{
+      NIP
+      s0 s3 XCHG
+      32 LDU
+      DROP
+      32 PUSHINT
+      s1 s2 XCHG
+      DICTUDEL
+      DROP
+      ACCEPT
+      s2 s4 XCHG
+      s1 s3 XCHG
+      s0 s2 XCHG
+      save_internal_data CALLDICT
+      -1 PUSHINT
+    }>
+    s3 POP
+    15 EQINT
+    IFJMP:<{
+      s0 s2 XCHG
+      256 LDU
+      DROP
+      ACCEPT
+      s1 s4 XCHG
+      s0 s3 XCHG
+      SWAP
+      save_internal_data CALLDICT
+      -1 PUSHINT
+    }>
+    DROP
+    DROP
+    DROP
+    DROP
+    DROP
+    404 PUSHINT
+  }>
+  seqno PROC:<{
+    load_internal_data CALLDICT
+    DROP
+    DROP
+    DROP
+    DROP
+  }>
+  get_requests PROC:<{
+    load_internal_data CALLDICT
+    DROP
+    DROP
+    NIP
+    NIP
+    DUP
+    ISNULL
+    IFJMP:<{
+      DROP
+      PUSHNULL
+    }>
+    PUSHNULL
+    0 PUSHINT
+    UNTIL:<{
+      32 PUSHINT
+      s3 PUSH
+      SWAP
+      DICTUGETNEXT
+      NULLSWAPIFNOT
+      NULLSWAPIFNOT
+      DUP
+      IF:<{
+        PUSHNULL
+        0 PUSHINT
+        s0 s4 XCHG
+        LDREF
+        DROP
+        CTOS
+        32 LDU
+        LDDICT
+        DROP
+        UNTIL:<{
+          32 PUSHINT
+          s1 s6 XCHG
+          s6 PUSH
+          SWAP
+          DICTUGETNEXT
+          NULLSWAPIFNOT
+          NULLSWAPIFNOT
+          DUP
+          IF:<{
+            s0 s2 XCHG
+            32 LDU
+            DROP
+            OVER
+            SWAP
+            PAIR
+            s1 s4 XCHG
+            CONS
+          }>ELSE<{
+            s1 s4 XCHG
+            s0 s2 XCHG
+            DROP
+          }>
+          SWAP
+          NOT
+          s3 s6 XCHG
+          s1 s3 XCHG
+        }>
+        DROP
+        s4 POP
+        s2 PUSH
+        s0 s2 XCHG
+        s1 s4 XCHG
+        s0 s4 XCHG
+        TRIPLE
+        s1 s3 XCHG
+        CONS
+      }>ELSE<{
+        s1 s3 XCHG
+        s0 s2 XCHG
+        DROP
+      }>
+      SWAP
+      NOT
+      s1 s2 XCHG
+    }>
+    DROP
+    NIP
+  }>
+  get_responses PROC:<{
+    load_internal_data CALLDICT
+    DROP
+    NIP
+    NIP
+    NIP
+    DUP
+    ISNULL
+    IFJMP:<{
+      DROP
+      DROP
+      PUSHNULL
+    }>
+    get_my_workchain CALLDICT
+    32 PUSHINT
+    s2 s3 XCHG
+    s1 s3 XCHG
+    DICTUGET
+    NULLSWAPIFNOT
+    IFNOTJMP:<{
+      DROP
+      DROP
+      PUSHNULL
+    }>
+    DUP
+    ISNULL
+    IFJMP:<{
+      DROP
+      DROP
+      PUSHNULL
+    }>
+    PUSHNULL
+    0 PUSHINT
+    s0 s2 XCHG
+    LDDICT
+    DROP
+    UNTIL:<{
+      8 PUSHPOW2
+      s1 s3 XCHG
+      s3 PUSH
+      SWAP
+      DICTUGETNEXT
+      NULLSWAPIFNOT
+      NULLSWAPIFNOT
+      DUP
+      IF:<{
+        PUSHNULL
+        0 PUSHINT
+        s0 s4 XCHG
+        32 LDU
+        LDGRAMS
+        LDDICT
+        DROP
+        UNTIL:<{
+          32 PUSHINT
+          s1 s7 XCHG
+          s7 PUSH
+          SWAP
+          DICTUGETNEXT
+          NULLSWAPIFNOT
+          NULLSWAPIFNOT
+          DUP
+          IF:<{
+            s0 s2 XCHG
+            32 LDU
+            DROP
+            OVER
+            SWAP
+            PAIR
+            s1 s5 XCHG
+            CONS
+          }>ELSE<{
+            s1 s5 XCHG
+            s0 s2 XCHG
+            DROP
+          }>
+          SWAP
+          NOT
+          s4 s7 XCHG
+          s1 s4 XCHG
+        }>
+        DROP
+        s5 POP
+        s7 PUSH
+        s4 PUSH
+        PAIR
+        s0 s3 XCHG
+        s1 s2 XCHG
+        s1 s5 XCHG
+        s0 s5 XCHG
+        4 TUPLE
+        s1 s3 XCHG
+        CONS
+      }>ELSE<{
+        s1 s3 XCHG
+        s0 s2 XCHG
+        DROP
+      }>
+      SWAP
+      NOT
+      s2 s3 XCHG
+      s1 s2 XCHG
+    }>
+    DROP
+    NIP
+    NIP
+  }>
+  info PROC:<{
+    load_internal_data CALLDICT
+    NIP
+    NIP
+    NIP
+    NIP
+    CTOS
+  }>
+}END>c
+constant code
+
+
+"TonUtil.fif" include
+
+0 =: workchain
+
+5557774444 =: contract_address_int
+<b b{100} s, workchain 8 u, contract_address_int 256 u, b> <s =: contract_address_full
+// Check if two below work same as the one above
+// <b b{10} s, workchain 8 i, contract_address_int 256 u, b> <s =: contract_address_full
+// <b 2 2 u, workchain 8 i, contract_address_int 256 u, b> <s =: contract_address_full
+
+0 tuple 0x076ef1ea , // magic
+0 , 0 , // actions msg_sents
+1570470873 , // unix_time
+1 , 1 , 0 , // block_lt, trans_lt, rand_seed
+0 tuple 9223372036854775807 , dictnew , , // remaining balance
+contract_address_full , dictnew , // contract_address, global_config
+1 tuple // wrap to another tuple
+constant c7 
+//	=================================
+//	=====	TEST FOR buyer.fc	=====
+//	=================================
+//	Given:
+//		=> Not initialized buyer
+//	Testing:
+//		=> Initializing
+//		=> Creating an order
+//		=> Sending an order
+//		=> Recieving the response
+//		=> Paying for the goods
+
+"TonUtil.fif" include
+
+"test_key_b" constant key_name
+"test buyer" constant name
+60 60 * 24 * 7 * constant timeout   // request expires in 7 days
+0 constant seqno
+
+key_name +".pk" load-generate-keypair 
+constant key_priv
+constant key_pub
+
+dictnew constant requests
+dictnew constant responses
+
+<b 
+    seqno 32 u, 
+    key_pub B,
+    requests dict,
+	responses dict,
+	<b name $, b> ref,
+ b> constant storage
+
+<b
+   0 4 u, // Mode, 0 = initializing the contract
+   seqno 32 u,
+b>
+constant init_message
+
+init_message hash key_priv ed25519_sign_uint constant signature
+
+<b
+   signature B, init_message ref, b>
+<s constant signed_message
+
+signed_message -1 code <s storage c7 runvmctx // Init
+
+constant updated_storage
+constant exit_code
+."Updated storage: " cr updated_storage <s csr. cr
+."Exit code " exit_code . cr cr
+
+85143 code <s updated_storage c7 runvmctx // seqno
+
+drop // updated storage
+drop // exit code
+."Seqno (should be 1): " cr
+.dump cr cr
+
+// =============================================================================== //
+// ================================== NEXT TEST ================================== //
+// =============================================================================== //
+
+dictnew constant order_dict
+
+<b 12 32 u, b> <s 9 order_dict 32 udict!
+
+drop
+constant order_dict
+
+<b 2 32 u, b> <s 45 order_dict 32 udict!
+
+drop
+constant order_dict
+
+<b 52 32 u, b> <s 7 order_dict 32 udict!
+
+drop
+constant order_dict
+
+<b 
+	timeout now + 32 u, // timeout
+	order_dict dict,
+b> constant order_body
+
+now 10020 + constant query_id
+
+<b
+   1 4 u, // Mode, 1 = Creating a new order
+   1 seqno + 32 u,
+   query_id 32 u, // query_id
+   order_body ref,
+b>
+constant new_order_message
+
+new_order_message hash key_priv ed25519_sign_uint constant signature
+
+<b
+   signature B, new_order_message ref, b>
+<s constant signed_message
+
+signed_message -1 code <s updated_storage c7 runvmctx // New order
+
+constant updated_storage_2
+constant exit_code
+."Updated storage: " cr updated_storage_2 <s csr. cr
+."Exit code " exit_code . cr cr
+
+73617 code <s updated_storage_2 c7 runvmctx // Get requests
+
+drop // updated storage
+drop // exit code
+."Requests list (should be a new request with items 9,45,7): " cr
+.dump cr cr
+
+
+// =============================================================================== //
+// ================================== NEXT TEST ================================== //
+// =============================================================================== //
+
+0 constant wc // same workchain as for the current contract, set in c7
+100870126461620338394187119891701040242723685959666180064965254700620577097548 constant selller_addr
+
+<b
+   2 4 u, // Mode, 2 = sending an order to a seller
+   2 seqno + 32 u,
+   333 32 u, // bad query_id
+   1 Gram,
+   selller_addr 256 u,
+b>
+constant bad_send_order_message
+
+bad_send_order_message hash key_priv ed25519_sign_uint constant signature
+
+<b
+   signature B, bad_send_order_message ref, b>
+<s constant signed_message
+
+signed_message -1 code <s updated_storage_2 c7 runvmctx // Send bad order
+
+constant updated_storage_3
+constant exit_code
+."Updated storage: " cr updated_storage_3 <s csr. cr
+."Exit code (should throw 276) " exit_code . cr cr
+
+<b
+   2 4 u, // Mode, 2 = sending an order to a seller
+   2 seqno + 32 u,
+   query_id 32 u, // query_id
+   1 Gram,
+   selller_addr 256 u,
+b>
+
+constant send_order_message
+
+send_order_message hash key_priv ed25519_sign_uint constant signature
+
+<b
+   signature B, send_order_message ref, b>
+<s constant signed_message
+
+signed_message -1 code <s updated_storage_3 c7 runvmctx // Send good order
+
+constant updated_storage_4
+constant exit_code
+."Updated storage: " cr updated_storage_4 <s csr. cr
+."Exit code (should be 0) " exit_code . cr cr
+
+// =============================================================================== //
+// ================================== NEXT TEST ================================== //
+// =============================================================================== //
+
+<b b{1000100} s, wc selller_addr addr, 0 Gram, b{00} s, b> constant meta
+
+dictnew constant goods_dict
+
+<b 10 32 u, b> <s 9 goods_dict 32 udict!
+
+drop
+constant goods_dict
+
+<b 54 32 u, b> <s 7 goods_dict 32 udict!
+
+drop
+constant goods_dict
+
+<b
+   112 Gram, // Mode, 1 = create a response
+   1 4 u, // Status, 1 = price is given
+   now timeout + 100 + 32 u, 
+   goods_dict dict,
+b> constant resp_body
+
+<b
+	query_id 32 u,
+	resp_body ref,
+b> <s constant message
+
+0 meta message 0 code <s updated_storage_4 c7 runvmctx // Test for creating an order
+
+constant updated_storage_5
+constant exit_code
+."Updated storage: " cr updated_storage_5 <s csr. cr
+."Exit code (should be 0) " exit_code . cr cr
+
+query_id 87810 code <s updated_storage_5 c7 runvmctx // Get responses
+
+drop // updated storage
+drop // exit code
+."Responses list (should be a new response from 0 100870126461620338394187119891701040242723685959666180064965254700620577097548 with price 112, products 9 and 7): " cr
+.dump cr cr
+
+// =============================================================================== //
+// ================================== NEXT TEST ================================== //
+// =============================================================================== //
+
+<b
+   3 4 u, // Mode, 3 = paying to a seller
+   3 seqno + 32 u,
+   query_id 32 u, // query_id
+   110 Gram, // Not enough moneys
+   selller_addr 256 u,
+b>
+constant bad_payment_message
+
+bad_payment_message hash key_priv ed25519_sign_uint constant signature
+
+<b
+   signature B, bad_payment_message ref, b>
+<s constant signed_message
+
+signed_message -1 code <s updated_storage_5 c7 runvmctx // Send bad payment
+
+constant updated_storage_6
+constant exit_code
+."Updated storage: " cr updated_storage_6 <s csr. cr
+."Exit code (should throw 432) " exit_code . cr cr
+
+<b
+   3 4 u, // Mode, 3 = paying to a seller
+   3 seqno + 32 u,
+   query_id 32 u, // query_id
+   112 Gram,
+   selller_addr 256 u,
+b>
+constant good_payment_message
+
+good_payment_message hash key_priv ed25519_sign_uint constant signature
+
+<b
+   signature B, good_payment_message ref, b>
+<s constant signed_message
+
+signed_message -1 code <s updated_storage_6 c7 runvmctx // Send bad payment
+
+constant updated_storage_7
+constant exit_code
+."Updated storage: " cr updated_storage_7 <s csr. cr
+."Exit code (should be 0) " exit_code . cr cr

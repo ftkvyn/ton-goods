@@ -1,0 +1,123 @@
+
+//	=================================
+//	=====	TEST FOR seller.fc	=====
+//	=================================
+//	Given:
+//		=> Seller with initialized list of goods
+//	Testing:
+//		=> Creating a request for the closed store
+//		=> Creating new price request with not enough money for price estimation
+
+"TonUtil.fif" include
+
+"test_key" constant key_name
+60 60 * 24 * 7 * constant timeout   // request expires in 7 days
+7 constant seqno
+1 5557722 2constant buyer_addr
+
+key_name +".pk" load-generate-keypair 
+constant key_priv
+constant key_pub
+
+dictnew constant goods_dict
+
+// Known goods
+
+<b 1 1 u, b> <s 55 goods_dict 32 udict!
+
+drop
+constant goods_dict
+
+<b 1 1 u, b> <s 45 goods_dict 32 udict!
+
+drop
+constant goods_dict
+
+<b 1 1 u, b> <s 72 goods_dict 32 udict!
+
+drop
+constant goods_dict
+
+<b 1 1 u, b> <s 9 goods_dict 32 udict!
+
+drop
+constant goods_dict
+
+dictnew constant clients_price_requests
+dictnew constant clients_price_responses
+
+<b 
+    seqno 32 u, 
+    key_pub B,
+    0 1 u, // is_open
+    0 Gram, // request is free
+    goods_dict dict,
+    clients_price_requests dict,
+    clients_price_responses dict,
+	<b "test name" $, b> ref,
+ b> constant storage
+
+<b b{1000100} s, buyer_addr addr, 0 Gram, b{00} s, b> constant meta
+
+dictnew constant order_dict
+
+<b 12 32 u, b> <s 9 order_dict 32 udict!
+
+drop
+constant order_dict
+
+<b 2 32 u, b> <s 45 order_dict 32 udict!
+
+drop
+constant order_dict
+
+<b 52 32 u, b> <s 7 order_dict 32 udict!
+
+drop
+constant order_dict
+
+
+<b
+   now timeout + 32 u, 
+   order_dict dict,
+   b>
+ constant order
+
+<b
+   1 4 u, // Mode, 1 = create an order
+   9999 32 u, 
+   order ref, b>
+ <s constant message
+
+."Message: " cr message csr. cr
+."Storage: " cr storage <s csr. cr
+
+0 meta message 0 code <s storage c7 runvmctx // Test for closed store
+
+constant updated_storage
+constant exit_code
+."Exit code " exit_code . cr
+."Updated storage: " cr updated_storage <s csr. cr
+
+// =============================================================================== //
+// ================================== NEXT TEST ================================== //
+// =============================================================================== //
+
+<b 
+    seqno 32 u, 
+    key_pub B,
+    1 1 u, // is_open
+    10 Gram, // request is free
+    goods_dict dict,
+    clients_price_requests dict,
+    clients_price_responses dict,
+	<b "test name" $, b> ref,
+b> constant storage
+
+
+
+9 meta message 0 code <s storage c7 runvmctx // Test for not enough money in the request
+constant updated_storage
+constant exit_code
+."Exit code " exit_code . cr
+."Should throw 101 " cr

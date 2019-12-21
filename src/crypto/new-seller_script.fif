@@ -1,0 +1,117 @@
+constant code
+
+"TonUtil.fif" include
+
+// New seller script
+// Created by Andrei Marchenko <ftkvyn@gmail.com>
+
+{ ."usage: " @' $0 type ." <workchain-id> <seller-key> <is-open> <request-price> <name> <number-of-goods> [<item-id>] [<filename-base>]" cr
+  ."Creates a new seller contract in specified workchain, with private key saved to or loaded from <seller-key>.pk" cr
+  ."<is-open> - should the shop be open right after deployment or not. Set 1 for it to be open and 0 for closed." cr
+  ."<request-price> - price in Grams that each buyer should attach to each price estimation request. Set it to 0 to make requests free." cr
+  ."<number-of-goods> is the number of <item-id>." cr
+  ."<number-of-goods> must be greater than 0, items ids are divided by space" cr
+  1 halt
+} : usage
+$# 8 < ' usage if
+
+$1 parse-workchain-id =: wc    // set workchain id from command line argument
+$2 =: seller-key
+$3 parse-int =: is-open
+$4 $>GR =: request-price
+$5 =: name
+$6 parse-int =: goods-num
+
+goods-num 6 + constant min_params
+
+$# dup min_params < swap min_params 1 + > or ' usage if
+
+$# min_params > { @' min_params 1 + $() } { "new-seller" } cond constant file-base
+
+is-open 0 = is-open 1 = or ' usage ifnot // checking that is-open is correct
+
+request-price 0 > request-price 0 = or ' usage ifnot // checking that price is non-negative
+
+0 constant seqno
+
+."Creating new seller in workchain " wc . cr
+
+seller-key +".pk" load-generate-keypair 
+constant key_priv
+constant key_pub
+
+dictnew constant goods_dict
+
+goods_dict
+// [ dict
+7 // param number
+// [dict, num
+{
+	dup 
+	// [dict, num, num
+	$() parse-int // item-id
+	// [dict, num, id
+	dup . cr // printing item-id
+	// [dict, num, id
+	swap
+	// [dict, id, num
+	1 +
+	// [dict, id, num + 1
+	1
+	// [dict, id, num + 1, 1
+	<b swap 32 u, b> <s
+	// [dict, id, num + 1, quantity_slice
+	2 roll
+	// [dict, num + 1, quantity_slice, id
+	3 roll
+	// [num + 1, quantity_slice, id, dict
+	32
+	// [num + 1, quantity_slice, id, dict, 32
+	udict! // udict! (val_slice x_key Dict n_key_len => D0 −1
+	// [num + 1, dict, -1
+	drop // result of adding to the dict
+	// [num + 1, dict, -1
+	swap
+	// [dict, num + 1
+} goods-num times
+
+drop
+constant goods_dict
+
+
+dictnew constant clients_price_requests
+dictnew constant clients_price_responses
+
+<b 
+    seqno 32 u,
+    key_pub B,
+    is-open 1 u,
+    request-price Gram,
+    goods_dict dict,
+    clients_price_requests dict,
+    clients_price_responses dict,
+	<b name $, b> ref,
+ b> constant storage
+
+<b b{0011} s, code ref, storage ref, null dict, b> constant state-init  // create StateInit
+state-init .s
+state-init ."StateInit: " <s csr. cr
+state-init hash wc swap 2dup 2constant reg_addr
+."new seller address = " 2dup .addr cr
+2dup file-base +".addr" save-address-verbose
+."Non-bounceable address (for init): " 2dup 7 .Addr cr
+."Bounceable address (for later access): " 6 .Addr cr
+<b 0 4 u, // mode=0 initialization
+   seqno 32 u, // seq_no
+b>
+constant new_contract_msg
+new_contract_msg
+.s cr
+dup ."signing message: " <s csr. cr
+new_contract_msg hash key_priv ed25519_sign_uint constant signature
+drop
+<b b{1000100} s, reg_addr addr, b{000010} s, state-init <s s, b{0} s, signature B, new_contract_msg ref, b>
+dup ."External message for initialization is " <s csr. cr
+2 boc+>B dup Bx. cr
+file-base +".boc" tuck B>file
+."(Saved seller creating query to file " type .")" cr

@@ -1,0 +1,15 @@
+{
+	"name": "buyer-app",
+	"version": "0.1.0",
+	"main": "main.js",
+	"author": "Andrei Marchenko <ftkvyn@gmail.com>",
+	"scripts": {
+		"start": "electron ."
+	},
+	"devDependencies": {
+		"electron": "^7.1.4"
+	},
+	"dependencies": {
+		"npm": "^6.13.3"
+	}
+}

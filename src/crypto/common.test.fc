@@ -1,0 +1,12 @@
+int get_my_workchain() {
+	slice my_addr = my_address();
+
+	(int my_wc, _) = my_addr.parse_std_addr();
+	
+	return my_wc;
+}
+
+_ get_my_wc() method_id {
+	int wc = get_my_workchain();
+	return wc;
+}

@@ -1,0 +1,60 @@
+constant code
+
+"TonUtil.fif" include
+
+// New buyer script
+// Created by Andrei Marchenko <ftkvyn@gmail.com>
+
+{ ."usage: " @' $0 type ." <workchain-id> <buyer-key> <name> [<filename-base>]" cr
+  ."Creates a new buyer contract in specified workchain, with private key saved to or loaded from <buyer-key>.pk" cr
+  ."In the first version all goods have to be added manually after the contract is deployed, not while contract creation." cr
+  1 halt
+} : usage
+$# dup 3 < swap 4 > or ' usage if
+
+$1 parse-workchain-id =: wc    // set workchain id from command line argument
+$2 =: buyer-key
+$3 =: name
+def? $4 { @' $4 } { "new-buyer" } cond constant file-base
+
+0 constant seqno
+
+."Creating new buyer in workchain " wc . cr
+
+buyer-key +".pk" load-generate-keypair 
+constant key_priv
+constant key_pub
+
+dictnew constant requests
+dictnew constant responses
+
+<b 
+    seqno 32 u,
+    key_pub B,
+    requests dict,
+    responses dict,
+	<b name $, b> ref,
+ b> constant storage
+
+<b b{0011} s, code ref, storage ref, null dict, b> constant state-init  // create StateInit
+state-init .s
+state-init ."StateInit: " <s csr. cr
+state-init hash wc swap 2dup 2constant reg_addr
+."new buyer address = " 2dup .addr cr
+2dup file-base +".addr" save-address-verbose
+."Non-bounceable address (for init): " 2dup 7 .Addr cr
+."Bounceable address (for later access): " 6 .Addr cr
+<b 0 4 u, // mode=0 initialization
+   seqno 32 u, // seq_no
+b>
+constant new_contract_msg
+new_contract_msg
+.s cr
+dup ."signing message: " <s csr. cr
+new_contract_msg hash key_priv ed25519_sign_uint constant signature
+drop
+<b b{1000100} s, reg_addr addr, b{000010} s, state-init <s s, b{0} s, signature B, new_contract_msg ref, b>
+dup ."External message for initialization is " <s csr. cr
+2 boc+>B dup Bx. cr
+file-base +".boc" tuck B>file
+."(Saved buyer creating query to file " type .")" cr

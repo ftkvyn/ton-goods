@@ -1,0 +1,48 @@
+#!/usr/bin/env fift -s
+"TonUtil.fif" include
+
+{ ."usage: " @' $0 type ." <seller-addr-file> <seller-key-name> <seqno> <item-id> <is-add> [<savefile>]" cr
+  ."Adds an item or removes an item from the list of the goods known to the seller." cr
+  ."Seller address is taken from <seller-addr-file>.addr" cr
+  ."Seller contract owner's private key is loaded from the file <seller-key-name>.pk." cr
+  ."<item-id> is the id of a new or of the removing item." cr
+  ."<is-add> set to 1 to add a new item or to 0 to remove a known item." cr
+  ."Saves it into <savefile>.boc ('edit-goods-query.boc' by default)" cr
+  1 halt
+} : usage
+$# dup 5 < swap 6 > or ' usage if
+$1 =: seller_addr_file
+$2 =: key_name
+$3 parse-int =: seqno
+$4 parse-int =: item_id
+$5 parse-int =: is_add
+
+def? $6 { @' $6 } { "edit-goods-query" } cond constant savefile
+
+is_add 0 = is_add 1 = or ' usage ifnot // checking that is-open is correct
+
+is_add 1 = { 2 } { 3 } cond constant mode // Mode, 2 = adding an item, 3 = removing an item
+
+seller_addr_file +".addr" load-address
+2dup 2constant seller_addr
+."Seller address = " 2dup .addr cr 6 .Addr cr
+
+key_name +".pk" load-keypair 
+constant key_priv
+constant key_pub
+
+<b
+   mode 4 u, // Mode, 2 = adding an item
+   seqno 32 u,
+   item_id 32 u, // New item id
+b>
+constant edit_goods_message
+
+edit_goods_message hash key_priv ed25519_sign_uint constant signature
+
+<b b{1000100} s, seller_addr addr, 0 Gram, b{00} s,
+   signature B, edit_goods_message ref, b>
+dup ."resulting external message: " <s csr. cr
+2 boc+>B dup Bx. cr
+savefile +".boc" tuck B>file
+."(Saved to file " type .")" cr
