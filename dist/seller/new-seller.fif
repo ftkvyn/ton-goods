@@ -93,7 +93,7 @@ PROGRAM{
     8 STI
     s1 s3 XCHG
     256 STU
-    0 PUSHINT
+    500000000 PUSHINT
     STGRAMS
     107 STU
     STREF
