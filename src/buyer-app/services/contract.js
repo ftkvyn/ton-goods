@@ -377,11 +377,13 @@ function getData(contract, params, cb) {
 	const command = buildLiteClientCommand(`runmethod ${contract} ${params}`)
 	execute(command, (stdout, stderr) => {
 		if ( (stderr.indexOf('is empty (cannot run method') > -1) ||
-			(stderr.indexOf('not initialized yet (cannot run any methods)') > -1)) {
+			(stderr.indexOf('not initialized yet (cannot run any methods)') > -1) ||
+			(stdout.indexOf('is empty (cannot run method') > -1) ||
+			(stdout.indexOf('not initialized yet (cannot run any methods)') > -1)) {
 			cb(null, {isEmpty: true});
 			return;
 		}
-        const lines = stderr.split(os.EOL);
+        const lines = stdout.split(os.EOL);
         lines.forEach(line => {
             if (line.startsWith('result:  [ ')) {
                 const val_str = line.replace('result:  [ ', '').replace(']', '').trim();
@@ -394,7 +396,7 @@ function getData(contract, params, cb) {
 function getBalance(addr, cb){
     const command = buildLiteClientCommand(`getaccount ${addr}`);
     execute(command, (stdout, stderr) => {
-        const lines = stderr.split(os.EOL);
+        const lines = stdout.split(os.EOL);
         lines.forEach(line => {
             if (line.startsWith('account balance is ')) {
                 const val_str = line.replace('account balance is ', '').replace('ng', '').trim();
@@ -449,7 +451,7 @@ function getSeqNo(addr, cb){
 
 function liteClientGetNumber(command, cb) {
     execute(command, (stdout, stderr) => {
-        const lines = stderr.split(os.EOL);
+        const lines = stdout.split(os.EOL);
         lines.forEach(line => {
             if (line.startsWith('result:  [ ')) {
                 const val_str = line.replace('result:  [', '').replace(']', '').trim();
