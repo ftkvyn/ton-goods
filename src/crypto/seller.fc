@@ -146,7 +146,7 @@
 		.store_int(wc, 8)
 		.store_uint(client_addr, 256)
 		;; ToDo: provide grams amount in fift script.
-		.store_grams(0.1) ;; Hardcoding some amount for now.
+		.store_grams(500000000) ;; Hardcoding some amount for now.
 		.store_uint(1, 107) ;; 106 zeroes + 
 		;; 1 as an indicator that there is a cell with the data.
 		.store_ref(resp_data)
@@ -172,6 +172,9 @@ cell create_order(slice sender_addr, int query_id, cell goods_needed, int expire
 	if (is_found) {
 		client_orders_dict = client_orders~load_dict();
 	}
+
+	(slice existing_order, int is_found) = client_orders_dict.udict_get?(32, query_id);
+	throw_if(902, is_found); ;; order with such id already exists for the client.
 
 	cell saving_order_body = new_dict();
 	int item_id = 0;

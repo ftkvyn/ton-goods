@@ -93,7 +93,7 @@ PROGRAM{
     8 STI
     s1 s3 XCHG
     256 STU
-    0 PUSHINT
+    500000000 PUSHINT
     STGRAMS
     107 STU
     STREF
@@ -126,6 +126,15 @@ PROGRAM{
       SWAP
       DROP
     }>
+    32 PUSHINT
+    s6 PUSH
+    SWAP
+    s2 PUSH
+    SWAP
+    DICTUGET
+    NULLSWAPIFNOT
+    NIP
+    902 THROWIF
     NEWDICT
     0 PUSHINT
     UNTIL:<{
