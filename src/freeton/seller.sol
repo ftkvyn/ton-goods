@@ -18,4 +18,61 @@ contract Seller {
         require(msg.pubkey() == tvm.pubkey(), 102);
         tvm.accept();
     }
+
+    modifier onlyOwner {
+        require(msg.pubkey() == tvm.pubkey(), 102);
+        tvm.accept();
+        _;
+    }
+
+    modifier onlyOnChain {
+        require(msg.sender != 0, 109);
+		_;
+    }
+
+    /// Internal, on-chain functions
+
+    function recievePriceRequest(PriceRequest request) public onlyOnChain {
+        // TBD
+    }
+
+    function recievePayment(uint req_id) public onlyOnChain {
+        // TBD
+    }
+
+    /// External functions, called by the owner
+
+    function respondWithQuota() public onlyOwner {
+        // TBD
+    }
+
+    function cleanupClientData(address clientToRemove) public onlyOwner {
+        // TBD
+    }
+
+    function cleanupStaleData() public onlyOwner {
+        // TBD
+    }
+
+    function changeIsOpen(bool isOpen) public onlyOwner {
+        // TBD
+    }
+
+    function updateProduct(uint productId, bool isAdd) public onlyOwner {
+        // TBD
+    }
+
+    /// Getters
+
+    function getClientOrders(address client) public view returns (PriceRequest[] requests) {
+        // TBD
+    }
+
+    function getProducts() public view returns (uint[] activeProducts) {
+        // TBD
+    }
+
+    function getIsOpen() public view returns (bool isOpen) {
+        // TBD
+    }
 }
