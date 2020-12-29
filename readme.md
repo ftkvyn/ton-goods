@@ -2,6 +2,10 @@
 
 #### Author: Andrei Marchenko <ftkvyn@gmail.com>, @ftkvyn, [LinkedIn](https://www.linkedin.com/in/ftkvyn/)
 
+#### Profile on [forum.freeton.org](https://forum.freeton.org/u/ftkvyn/)
+
+### * FreeTON network support is in the development.
+
 ## Short description
 
 The goal of the project is to create an ecosystem for selling and purchasing goods on TON blockchain. The general idea is following. There are the **Sellers** each of whom is selling some goods. Each of the **Sellers** has it's list of the goods that he sells. The **Seller** accepts the requests from the **Buyers** as internal messages. Then the **Seller** may estimate inspect his stores and warehouses (offline) and send back to the **Buyer** the response with the price estimation for the requested set of goods. If the seller doesn't have enough goods in the store - he may specify the amount of each product that he proposes. When the **Buyer** got the price estimations from different **Sellers**, he may pay for the proposed goods.
@@ -26,6 +30,9 @@ Each seller and buyer stores it's name or short description in the blockchain to
 
 Following instruments are working on TON blockchain:
 
+*	Smartcontract (FreeTON version, Solidity)
+	*	**seller.sol** - Solidity source code of the **Seller** contract. Accepts requests from **Buyers**, sends back the prices. Maintains the list of products.
+	*	**buyer.sol** - Solidity source code of the **Buyer** contract. Creates price requests, sends them to **Sellers**, gets back the quotas, may as well pay the estimated quota.
 *	Smartcontracts
 	*	**seller.fc** - the **Seller's** smart contract. Stores list of goods, accepts price requests from the **Buyers**, sends back price estimations, accepts payments for estimated requests.
 	*	**buyer.fc** - the **Buyer's** smart contract. Stores created orders, sends once created orders to several **Sellers**, accepts price estimation from them and pays the estimated price.
@@ -47,13 +54,29 @@ Following instruments are working on TON blockchain:
 
 
 
-### Off-chain
+### Off-chain (Only for Classic TON, FreeTON is not yet supported)
 
 * Seller's application
 	* Allows to create several **Seller** contracts, observe recieved price requests, send back price estimations.
 
 * Buyer's application
 	* Allows to create several **Buyer** contracts, create new price requests, send them to the sellers, observe recieved price estimations.
+
+## Requirements (FreeTON)
+
+Applications are developed and tested on Ubuntu Linux, correct work on other systems is not guaraneed.
+To be able to build and run scripts and to be able to use teacher's and student's application following requirements have to be fulfilled:
+
+* Download or build from sources FreeTON tools - Solidity compiler and `tvm_linker` as described in the instruction:
+	*	Solidity tools for FreeTON: [https://docs.ton.dev/86757ecb2/p/950f8a-write-smart-contract-in-solidity](https://docs.ton.dev/86757ecb2/p/950f8a-write-smart-contract-in-solidity)
+	*	General FreeTON tools: [https://docs.ton.dev/86757ecb2/p/552389-general](https://docs.ton.dev/86757ecb2/p/552389-general)
+	*	Solidity to TON compiler: [https://github.com/tonlabs/TON-Solidity-Compiler](https://github.com/tonlabs/TON-Solidity-Compiler)
+	*	`tvm_linker`: [https://github.com/tonlabs/TVM-linker](https://github.com/tonlabs/TVM-linker)
+	*	Useful tookit for communitcation with TON - tonos-cli [https://github.com/tonlabs/tonos-cli](https://github.com/tonlabs/tonos-cli)
+
+## Build instructions (FreeTON)
+
+*TBD*
 
 ## Requirements
 
